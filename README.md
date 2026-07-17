@@ -12,6 +12,10 @@ iterated until approved.
 > omitted here), and each experiment's own `experiments/e*/FINDINGS.md` with code, plots,
 > diagnostics and reviewer verdicts. Reproduce any experiment with
 > `uv run python -m experiments.<id>.run`.
+>
+> **No stats background?** [FINDINGS_FOR_DUMMIES.md](FINDINGS_FOR_DUMMIES.md) is a
+> plain-language walkthrough of the same five experiments (also Claude's interpretation) —
+> no logits, no credible intervals, just the intuition and the takeaways.
 
 All numbers are posterior means with 94% HDIs, and every experiment validated itself with
 synthetic-parameter-recovery fits before touching real data.
