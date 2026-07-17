@@ -1,0 +1,8 @@
+{
+  "model": "crossed_vard1_primary",
+  "max_r_hat": 1.0057,
+  "min_ess_bulk": 752.9862,
+  "min_ess_tail": 1398.8683,
+  "n_divergences": 1,
+  "n_params": 416
+}

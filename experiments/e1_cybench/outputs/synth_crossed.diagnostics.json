@@ -1,0 +1,8 @@
+{
+  "model": "challenge_run_binomialsynth_crossed_rep2",
+  "max_r_hat": 1.0069,
+  "min_ess_bulk": 472.2893,
+  "min_ess_tail": 847.2516,
+  "n_divergences": 0,
+  "n_params": 191
+}

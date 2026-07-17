@@ -1,0 +1,8 @@
+{
+  "model": "simplified_group_binomial_exponentialq1_gpt-4o-2024-08-06",
+  "max_r_hat": 1.0022,
+  "min_ess_bulk": 903.8603,
+  "min_ess_tail": 1642.3722,
+  "n_divergences": 0,
+  "n_params": 82
+}

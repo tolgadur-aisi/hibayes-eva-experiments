@@ -1,0 +1,19 @@
+{
+  "raw_rows": 83078,
+  "dropped_error_rows": 180,
+  "limit_rows_kept": 21685,
+  "dup_runs_dropped": 33,
+  "unique_nonfan_runs": 31,
+  "clean_rows": 57539,
+  "d1_cells": 948,
+  "d1_runs": 12,
+  "d1_models": 4,
+  "d1_samples": 9480,
+  "d1x_cells": 2054,
+  "d1x_runs": 26,
+  "d1x_variants": 9,
+  "d1x_samples": 19829,
+  "d2_cells": 210,
+  "d2_batches": 22,
+  "d2_samples": 35814
+}

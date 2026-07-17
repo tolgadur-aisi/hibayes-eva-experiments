@@ -1,0 +1,46 @@
+{
+  "review_round": 1,
+  "reviewer": "skeptical Bayesian statistician (Claude)",
+  "date": "2026-07-16",
+  "approved": false,
+  "verification_performed": [
+    "Read FINDINGS.md, run.py, prep.py, models.py, metrics.py, synth.py and all outputs/*.diagnostics.json, *.csv, run.log, and the three PNGs.",
+    "Data accounting arithmetic re-added for all four datasets: cybench 66694-26179-1509=39006; gdm 83078-25449-90=57539; swe 22063-11171-1051=9841; boolq 1967-77=1890. All match data_accounting.csv and FINDINGS.",
+    "Dedup premise verified directly against public_evals.parquet: 458 duplicated (task_name, eval_id) keys; 100% have identical run_id and identical created across internal_ids - literal ingest copies, dedup by lowest internal_id is sound.",
+    "Per-parameter convergence recomputed from the four crossed/boolq idata.nc files with arviz: cybench model_effects max r_hat 1.0094 / min ESS 463; gdm model_effects 1.0048/656, sigma_item 1.0187/337; swe model_effects 1.0016/1564, sigma_item 1.0033/780; boolq model_effects 1.0010/8828, sigma_char 1.0093/614, sigma_run 1.0005/8226. Elevated global stats are confined to non-centred z_item/z_int nuisance parameters (cybench 1.0174, gdm 1.0366, swe 1.0124, boolq 1.0125), matching the FINDINGS explanation except for swe (see blocking issue 1). Derived league-table metric diagnostics (derived_diagnostics.csv) all r_hat <= 1.0063, ESS >= 496.9.",
+    "Spot-checked >12 quantitative claims against output files: disc ratios (7.61/14.44/5.69/112.4 + HDIs), best-model abilities (0.617/0.677/0.444/0.893 + HDIs), rho (0.68/0.41/0.56 + HDIs), Deff10 (7.1/4.7/6.0), sigma_run (0.565/0.270/0.118/0.0170 + HDIs), inflation ratios (3.88/3.90/1.27/3.32), effective n (27.8/55.2), Mistral gdm group swings (sd 12.9-14.1pp, ratios 7.33/7.91), boolq condition SDs (0.219/0.110/0.071/0.0017), boolq median se 0.0054, uk-dsit variant count (31 in inclusion CSV). All traced and correct.",
+    "Reproduced the pre-dedup Finding-1 numbers from raw parquet using the stated definition (runs >= 10 samples, groups >= 2 runs): exactly 87 groups / 222 runs, 86% of groups with sd_acc == 0. Claim is correct but has no output artifact.",
+    "Independently reran the swe_repro fit at target_accept 0.95 and 0.97 (seed 555): sigma_run mean 0.129 [0.000, 0.347] and 0.122 [0.000, 0.315] vs reported 0.118 [0.000, 0.311] - the stated posterior stability across target_accept holds, but no artifact was saved.",
+    "Scorer inventory confirmed: all public-task headline scorers are rule-based (boolq_scorer, pattern, includes, swe_bench_scorer, plus null) - Finding 8 (judge-effects analysis infeasible) is correct.",
+    "Synthetic recovery: 9/9 checks in synthetic_recovery.csv verified present and passing; synth fit diagnostics clean (max r_hat 1.0051, 0 divergences); centring-adjusted truth definitions in synth.py are correct (a detail often gotten wrong).",
+    "Plots: all three PNGs have titles, axis labels, legends and visibly support Findings 3-5."
+  ],
+  "blocking_issues": [
+    {
+      "id": "B1",
+      "severity": "must-fix (wording only, conclusions unaffected)",
+      "issue": "FINDINGS.md Validation section misstates swe_bench_crossed convergence: 'all repro fits and swe crossed pass globally (r_hat <= 1.003, ESS >= 780 headline)'. The file outputs/swe_bench_crossed.diagnostics.json shows global max r_hat = 1.0124 and min ESS 597 (nuisance z_item), which does NOT pass globally at the 1.01 gate; the parenthetical numbers (1.003, 780) are its HEADLINE stats (sigma_item). The elevated-r_hat list '1.017/1.037/1.013 (cybench/gdm/boolq)' also omits swe's 1.0124. Fix the sentence to put swe crossed in the nuisance-z group with its headline stats stated separately."
+    },
+    {
+      "id": "B2",
+      "severity": "must-fix (traceability contract)",
+      "issue": "Two FINDINGS claims are not traceable to any output file, violating the stated output contract: (a) Finding 1's pre-dedup '87 replicate groups (222 runs >= 10 samples), mostly sd=0' - reviewer reproduced it exactly from raw parquet, so it is correct, but save a pre-dedup replicate-group CSV (and note the >=10 threshold differs from the >=20 used post-dedup); (b) the Validation claim that swe_repro's posterior is 'stable across target_accept 0.95/0.97/0.99 reruns' - reviewer's independent reruns confirm it (sigma_run 0.129/0.122 vs 0.118, overlapping HDIs), but the rerun diagnostics must be saved as an artifact or the sentence dropped in favour of the standard boundary-funnel justification alone."
+    }
+  ],
+  "suggestions": [
+    "S1: The crossed_binomial cell likelihood ignores the run-level overdispersion the experiment itself measures (sigma_run ~ 0.57 logit on cybench). Ability HDIs and especially the discrimination-ratio denominators are therefore optimistic. The caveat exists but is not connected to the affected metrics; either state explicitly that disc ratios are upper bounds conditional on the model, or run a beta-binomial-cell (or run-random-effect) sensitivity fit for one benchmark.",
+    "S2: Synthetic recovery for the crossed model uses a milder regime (rho ~ 0.21, sigma_item 1.2, 8 models, no all-solve/no-solve items) than the real data (rho 0.68, 45 models, many extreme items - the very regime that produces the nuisance-z r_hat trouble). Recovery also simulates from the fitted model, so it cannot detect the S1 misspecification. Add one harsher synthetic scenario.",
+    "S3: The null synthetic check 'pass if posterior mean <= 0.06' observed 0.0599 - a razor-thin pass against a threshold that looks post hoc. Prefer a prior-vs-posterior concentration criterion (e.g. posterior mass below 0.1 vs prior mass) so the null check is principled.",
+    "S4: boolq's discrimination ratio (112, probability scale with tiny eval-level SEs) sits in the same league-table column as logit-scale ratios; it is footnoted in FINDINGS but the CSV itself carries no scale annotation - add a scale column or footnote to health_league_table.csv.",
+    "S5: abilities_forest.png strips provider prefixes, producing duplicate y-labels (two 'Mistral-Large-2411' on cybench, two 'oak' on gdm); keep a provider disambiguator.",
+    "S6: diagnostics.json 'model' field concatenates model+tag ('boolq_normalboolq_normal') - cosmetic bridge issue, worth fixing for the synthesis report."
+  ],
+  "strengths": [
+    "The duplicate-ingest discovery (31-51% of public sample rows are literal copies) is a genuinely valuable warehouse-hygiene finding, correctly diagnosed and correctly handled.",
+    "Exclusion accounting is exact; error/limit policy is the right call for agentic tasks and is justified rather than asserted.",
+    "Fixed model effects to dodge the few-group shrinkage trap, non-centred hierarchies, and centring-adjusted synthetic truth estimands are all technically correct.",
+    "Headline-metric convergence gating (derived_diagnostics.csv) is the right response to nuisance-parameter r_hat inflation, and every per-parameter number quoted in FINDINGS matched the reviewer's recomputation from the idata files.",
+    "Honest observational framing throughout; no causal claims; every headline number carries a 94% HDI."
+  ],
+  "verdict_summary": "High-quality, near-approvable work. All spot-checked numbers trace or reproduce exactly; models, priors, synthetic recovery and hygiene policies are sound and honestly reported. Two must-fix items remain: one false convergence sentence about swe_bench_crossed (contradicted by the project's own diagnostics file) and two untraceable-though-correct claims that need saved artifacts. Fix those and this is ready for SoE."
+}

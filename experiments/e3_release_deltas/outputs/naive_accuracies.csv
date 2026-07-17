@@ -1,0 +1,16 @@
+benchmark,model,n,acc,n_configs
+cybench,anthropic/claude-3-7-sonnet-20250219,8630,0.2711471610660487,42
+cybench,anthropic/claude-opus-4-1-20250805,848,0.7641509433962265,2
+cybench,anthropic/claude-opus-4-20250514,400,0.3675,1
+cybench,anthropic/claude-sonnet-4-20250514,910,0.7043956043956044,3
+cybench,openai/gpt-4o-2024-08-06,2454,0.13202933985330073,5
+cybench,openai/gpt-5,1805,0.7650969529085873,3
+cybench,openai/o1,1570,0.3356687898089172,2
+cybench,openai/o3,2475,0.6064646464646465,3
+cybench,openai/o4-mini,1074,0.6461824953445066,2
+gdm_intercode_ctf,anthropic/claude-opus-4-1-20250805,4744,0.7284991568296796,14
+gdm_intercode_ctf,anthropic/claude-sonnet-4-20250514,5581,0.6570507077584662,14
+gdm_intercode_ctf,openai/gpt-4o-2024-08-06,1738,0.5339470655926352,1
+gdm_intercode_ctf,openai/gpt-5,6545,0.8122230710466004,14
+gdm_intercode_ctf,openai/o3,11816,0.5235274204468517,14
+gdm_intercode_ctf,openai/o4-mini,7128,0.6331369248035915,14

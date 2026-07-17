@@ -1,0 +1,2 @@
+benchmark,gpt4o_acc_all79items,gpt4o_n_all,gpt4o_acc_14modernitems,gpt4o_n_14items,gpt5_acc_modern,shared_task_args_configs,note
+gdm_intercode_ctf,0.5339470655926352,1738,0.7077922077922078,308,0.8122230710466004,0,gpt-4o ran vanilla_agent_setup (token_limit 250k); gpt-5 ran built-in agent max_attempts=3/max_messages=50. No scaffold-matched rows exist; remaining gap after item restriction confounds scaffold with model.

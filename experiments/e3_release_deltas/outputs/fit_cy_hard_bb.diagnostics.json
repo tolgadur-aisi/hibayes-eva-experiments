@@ -1,0 +1,8 @@
+{
+  "model": "fixed_model_item_binomialcy_hard_bb",
+  "max_r_hat": 1.006,
+  "min_ess_bulk": 685.0728,
+  "min_ess_tail": 1435.613,
+  "n_divergences": 0,
+  "n_params": 86
+}

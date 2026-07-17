@@ -1,0 +1,8 @@
+{
+  "model": "model_challenge_run_binomialq3_joint",
+  "max_r_hat": 1.0176,
+  "min_ess_bulk": 376.0226,
+  "min_ess_tail": 685.4651,
+  "n_divergences": 0,
+  "n_params": 346
+}

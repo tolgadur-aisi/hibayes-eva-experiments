@@ -1,0 +1,8 @@
+{
+  "model": "pooled_pair_binomialsynthC0",
+  "max_r_hat": 1.011,
+  "min_ess_bulk": 406.7679,
+  "min_ess_tail": 1029.1895,
+  "n_divergences": 5,
+  "n_params": 40
+}

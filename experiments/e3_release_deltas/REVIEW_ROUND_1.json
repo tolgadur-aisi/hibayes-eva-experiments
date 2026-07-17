@@ -1,0 +1,45 @@
+{
+  "review_round": 1,
+  "reviewer": "skeptical senior Bayesian statistician (Claude)",
+  "date": "2026-07-16",
+  "approved": true,
+  "blocking_issues": [],
+  "verified": {
+    "data_handling": [
+      "Config heterogeneity audited and real: 96 distinct task_args among the 13 family-lineage cybench models (reproduced exactly from parquet); matched-config classes CY-HARD/CY-EASY/GDM-MAIN are well-defined via scaffold parsing of task_args.",
+      "100% item-set overlap between pair members within every class (re-ran build_matched_classes: identical item sets, 40/2/14 items).",
+      "Zero duplicate (run_internal_id, item_id, epoch) rows (assert executed on rebuild).",
+      "Error/limit policy stated and justified: non-empty error and limit='operator' excluded (both 0 inside classes), budget-limit rows kept as failures; kept-limit counts sum exactly (555 CY-HARD, 1,892 CY-EASY, 13,028 GDM-MAIN from data_hygiene.csv).",
+      "Bridge score-coercion drops verified exactly (3,016/66,694 cybench; 180/83,078 gdm); zero non-binary scores remain inside the matched classes, so sample-level accuracies and binomial aggregation see identical data."
+    ],
+    "models": [
+      "Binomial likelihood on aggregated counts matches the data; fixed model effects avoid the documented few-group shrinkage trap; hier item effects for 40 items, dummy-coded fixed for 2/14 items with stated rationale; priors stated for every parameter.",
+      "Beta-binomial robustness for CY-HARD's single-run-per-model epochs is the right move: kappa posterior 3.59 [1.50, 5.87] (verified from idata; ICC 0.218 matches the claimed 0.22) and the HDI honestly widens.",
+      "Pooled two-benchmark model with tau prior sensitivity (HalfNormal 0.5 vs 1.0) and an explicit statement that N=2 leaves tau prior-dominated."
+    ],
+    "validation": [
+      "Synthetic recovery genuinely performed: 5 seeds x 5 design shapes, 65 checks, 63/65 (96.9%) inside 94% HDI, per-design mean bias <= 0.038 logits (recomputed from synthetic_recovery.csv); sim-0 idata + diagnostics on disk.",
+      "All 6 real fits: 0 divergences; min ess_bulk 646; max r_hat 1.0105 (fit_cy_hard) exceeds 1.01 but with a correct written justification: the model/item location ridge cancels in the reported contrasts (delta r_hat <= 1.0006, delta ESS >= 9,412 in summary_deltas.csv; pooled mu_delta independently recomputed from idata: r_hat 1.0004/1.0008, ess_bulk 3139/2513)."
+    ],
+    "claims_spot_checked": [
+      "Finding 1: delta +2.86 [2.23, 3.46] and BB +2.66 [1.74, 3.59], P(>0)=P(>0.5)=1.00, +19.1pp [13.5, 25.1] — all match summary_deltas.csv; 0.282->0.468 matches data_hygiene.csv.",
+      "Finding 2: cy_easy +0.27 [0.05, 0.47] P=0.99; gdm +0.44 [0.35, 0.52]; P(delta>0.5) = 0.019/0.076 <= 0.08; pp +5.2 [1.2, 9.2] and +8.0 [6.4, 9.4] — all match.",
+      "Finding 3: pooled 0.48 [-0.16, 1.09] P=0.94 vs 0.47 [-0.45, 1.41] P=0.89; tau means 0.40/0.60 — match pooled_stats.json.",
+      "Finding 4: naive 0.336(n=1,570)->0.606(n=2,475), +27.1pp, naive logit +1.12, 2.4x understatement — match naive_accuracies.csv; 1,200 bespoke best_agent_model_setup_o1 rows reproduced from parquet.",
+      "Finding 5: gdm decomposition 0.534->0.708->0.812, item mix +17.4pp = 63%, residual +10.4pp — match naive_gpt4o_gpt5_decomposition.csv; zero shared configs/items reproduced from parquet.",
+      "Finding 6: gpt-5 0.832 vs 0.530 (+30.2pp), o3 0.633 vs 0.468 (+16.6pp) — match config_sensitivity_demo.csv.",
+      "Caveats: o1-2024-12-17 n=1,282 reproduced from parquet."
+    ],
+    "plots": "Both forest plots labelled (title, axis, legend, HDI annotations, 0 and +0.5 reference lines); values consistent with summary_deltas.csv; pooled row visually distinguished and correctly lacks a naive marker.",
+    "honesty": "No causal language; observational caveats explicit; non-analysable pairs (gpt-4o->gpt-5 etc.) declared rather than forced; single-run confound and 2-challenge scope of CY-EASY caveated; conditional-vs-marginal (non-collapsibility) distinction handled correctly."
+  },
+  "suggestions": [
+    "FINDINGS Data section: the swe_bench model list omits openai/gpt-4o (parquet has gpt-4o, o1-2024-12-17, o3-mini, claude-3-5-sonnet x2). The no-within-family-pair conclusion still holds; fix the parenthetical.",
+    "'96 distinct task_args configs among focus models' is ambiguous: it refers to the 13 family-lineage models, not common.py FOCUS_MODELS (union ~5). Name the model set.",
+    "Synthetic sim-0 diagnostics show mild issues (synthC0: 5 divergences at target_accept=0.97 while real pooled fits use 0.99; synthE0: r_hat 1.0164, ess_bulk 350), and sims 1-4 diagnostics are unsaved. Match sampler settings between synthetic and real fits and track convergence across all sims.",
+    "pooled_stats.json key 'tau_hdi_97' is a 97th percentile (np.quantile), not an HDI bound; summary_deltas.csv names it correctly (tau_q97). Rename for consistency (no FINDINGS claim depends on it).",
+    "The recovery gate (coverage >= 0.80) is lenient for 65 checks at nominal 94%; observed 96.9% passes comfortably, but tighten to ~0.85-0.88 to make the assert meaningful.",
+    "Style: mid-function 'import arviz' in run.py pair_summary and common.py hdi_and_probs violates the repo top-of-file import convention."
+  ],
+  "summary": "Approved with zero blocking issues. Data hygiene is documented and reproduces exactly (config audit, item overlap, exclusion counts, bridge drops); models match the data with stated priors and a well-chosen beta-binomial robustness check; synthetic recovery is a real multi-seed calibration exercise (96.9% coverage, small bias) with artefacts on disk; convergence is met or explicitly and correctly justified (contrast-level diagnostics verified independently from idata); every spot-checked number in FINDINGS traces to an output file or reproduces from the parquet; plots support the claims; no causal overclaiming. Six minor suggestions, none affecting any reported number."
+}

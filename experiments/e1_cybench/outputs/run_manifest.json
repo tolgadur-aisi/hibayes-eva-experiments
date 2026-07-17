@@ -1,0 +1,141 @@
+{
+  "wall_seconds": 417.9,
+  "convergence_worst_case": {
+    "max_r_hat": 1.0176,
+    "min_ess_bulk": 376.0226,
+    "total_divergences": 0,
+    "reported_max_r_hat": 1.0078,
+    "reported_min_ess_bulk": 449.8508,
+    "n_fits": 15
+  },
+  "fits": {
+    "synth_challenge_only": {
+      "model": "simplified_group_binomial_exponentialsynth_challenge_only",
+      "max_r_hat": 1.0031,
+      "min_ess_bulk": 1581.9967,
+      "min_ess_tail": 2521.7574,
+      "n_divergences": 0,
+      "n_params": 82
+    },
+    "synth_crossed": {
+      "model": "challenge_run_binomialsynth_crossed_rep2",
+      "max_r_hat": 1.0069,
+      "min_ess_bulk": 472.2893,
+      "min_ess_tail": 847.2516,
+      "n_divergences": 0,
+      "n_params": 191,
+      "reported_max_r_hat": 1.0051,
+      "reported_min_ess_bulk": 842.2533
+    },
+    "synth_joint": {
+      "model": "model_challenge_run_binomialsynth_joint",
+      "max_r_hat": 1.0125,
+      "min_ess_bulk": 548.7992,
+      "min_ess_tail": 1215.349,
+      "n_divergences": 0,
+      "n_params": 346,
+      "reported_max_r_hat": 1.0026,
+      "reported_min_ess_bulk": 1635.8314
+    },
+    "q1_claude-3-7-sonnet-20250219": {
+      "model": "simplified_group_binomial_exponentialq1_claude-3-7-sonnet-20250219",
+      "max_r_hat": 1.0066,
+      "min_ess_bulk": 449.8508,
+      "min_ess_tail": 936.5578,
+      "n_divergences": 0,
+      "n_params": 82
+    },
+    "q1_claude-opus-4-20250514": {
+      "model": "simplified_group_binomial_exponentialq1_claude-opus-4-20250514",
+      "max_r_hat": 1.0037,
+      "min_ess_bulk": 1025.6039,
+      "min_ess_tail": 1883.9774,
+      "n_divergences": 0,
+      "n_params": 82
+    },
+    "q1_gemma-3-27b-it": {
+      "model": "simplified_group_binomial_exponentialq1_gemma-3-27b-it",
+      "max_r_hat": 1.0026,
+      "min_ess_bulk": 863.5155,
+      "min_ess_tail": 1424.2117,
+      "n_divergences": 0,
+      "n_params": 82
+    },
+    "q1_Mistral-Large-2411": {
+      "model": "simplified_group_binomial_exponentialq1_Mistral-Large-2411",
+      "max_r_hat": 1.004,
+      "min_ess_bulk": 983.5573,
+      "min_ess_tail": 1664.1758,
+      "n_divergences": 0,
+      "n_params": 82
+    },
+    "q1_gpt-4o-2024-08-06": {
+      "model": "simplified_group_binomial_exponentialq1_gpt-4o-2024-08-06",
+      "max_r_hat": 1.0022,
+      "min_ess_bulk": 903.8603,
+      "min_ess_tail": 1642.3722,
+      "n_divergences": 0,
+      "n_params": 82
+    },
+    "q1_gpt-5": {
+      "model": "simplified_group_binomial_exponentialq1_gpt-5",
+      "max_r_hat": 1.0022,
+      "min_ess_bulk": 950.0744,
+      "min_ess_tail": 2005.9439,
+      "n_divergences": 0,
+      "n_params": 82
+    },
+    "q1_o1": {
+      "model": "simplified_group_binomial_exponentialq1_o1",
+      "max_r_hat": 1.0029,
+      "min_ess_bulk": 873.7603,
+      "min_ess_tail": 1282.0241,
+      "n_divergences": 0,
+      "n_params": 82
+    },
+    "q1_o1-2024-12-17": {
+      "model": "simplified_group_binomial_exponentialq1_o1-2024-12-17",
+      "max_r_hat": 1.0034,
+      "min_ess_bulk": 892.3905,
+      "min_ess_tail": 1254.7594,
+      "n_divergences": 0,
+      "n_params": 82
+    },
+    "q1_o3": {
+      "model": "simplified_group_binomial_exponentialq1_o3",
+      "max_r_hat": 1.0078,
+      "min_ess_bulk": 796.4636,
+      "min_ess_tail": 1557.1288,
+      "n_divergences": 0,
+      "n_params": 82
+    },
+    "q1_o3-mini": {
+      "model": "simplified_group_binomial_exponentialq1_o3-mini",
+      "max_r_hat": 1.0022,
+      "min_ess_bulk": 754.8782,
+      "min_ess_tail": 1656.5317,
+      "n_divergences": 0,
+      "n_params": 82
+    },
+    "q2_claude37_crossed": {
+      "model": "challenge_run_binomialq2_claude37_crossed",
+      "max_r_hat": 1.0032,
+      "min_ess_bulk": 758.3417,
+      "min_ess_tail": 1563.4369,
+      "n_divergences": 0,
+      "n_params": 191,
+      "reported_max_r_hat": 1.0025,
+      "reported_min_ess_bulk": 1901.5661
+    },
+    "q3_joint": {
+      "model": "model_challenge_run_binomialq3_joint",
+      "max_r_hat": 1.0176,
+      "min_ess_bulk": 376.0226,
+      "min_ess_tail": 685.4651,
+      "n_divergences": 0,
+      "n_params": 346,
+      "reported_max_r_hat": 1.0053,
+      "reported_min_ess_bulk": 1150.2837
+    }
+  }
+}

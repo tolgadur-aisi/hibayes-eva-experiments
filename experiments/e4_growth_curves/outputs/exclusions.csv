@@ -1,0 +1,10 @@
+step,n_dropped,n_left
+raw rows,0,53041.0
+drop NaN score_headline_value (incl. all boolq boolq_scorer rows),8398,44643.0
+"drop metric not in {accuracy, mean}",0,44643.0
+dedupe re-uploaded eval logs (same eval_id+created+value),340,44303.0
+boolq: keep pattern scorer only,0,44303.0
+"exclude models: locally hosted vllm checkpoint (base model has a public release date, but served-weight provenance is unverifiable) (5 model strings)",5,
+exclude models: modified deployment variant (Mistral-Large-2411-CAST) (1 model strings),8,
+exclude models: uk-dsit fine-tune of gpt-4o (not a public model release) (31 model strings),44,
+final run-level rows,0,44246.0

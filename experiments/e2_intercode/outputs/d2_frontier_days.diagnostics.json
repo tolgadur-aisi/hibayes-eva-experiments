@@ -1,0 +1,8 @@
+{
+  "model": "crossed_vard2_frontier_days",
+  "max_r_hat": 1.0028,
+  "min_ess_bulk": 2000.4115,
+  "min_ess_tail": 2909.5104,
+  "n_divergences": 0,
+  "n_params": 116
+}

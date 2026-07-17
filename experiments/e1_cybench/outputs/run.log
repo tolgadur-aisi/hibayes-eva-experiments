@@ -1,0 +1,8 @@
+[bridge] cybench: dropping 3016/66694 rows with unparseable score_includes
+[prep] audit: {'rows_raw': 66694, 'rows_dropped_unscored': 3016, 'rows_scored': 63678, 'rows_with_error_but_scored': 2, 'rows_limit_hit_kept': 41468, 'duplicate_runs_dropped': 185, 'rows_deduped': 24713, 'rows_clean': 38965}
+[stage0] prep done (41s): 19677 hard-variant focal rows
+[stage1] synthetic recovery done (104s): 28 checks, 1 outside 94% HDI
+[stage2] Q1 done (107s)
+[stage3] Q2 done (90s): rho_obs=0.777
+[stage4] Q3 done (77s)
+[done] 417.9s total; worst-case: {'max_r_hat': 1.0176, 'min_ess_bulk': 376.0226, 'total_divergences': 0, 'reported_max_r_hat': 1.0078, 'reported_min_ess_bulk': 449.8508, 'n_fits': 15}

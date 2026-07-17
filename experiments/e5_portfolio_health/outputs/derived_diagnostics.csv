@@ -1,0 +1,5 @@
+fit,disc_spread_r_hat,disc_spread_ess_bulk,rho_r_hat,rho_ess_bulk,p_best_r_hat,p_best_ess_bulk,sigma_run_r_hat,sigma_run_ess_bulk
+cybench_crossed,1.0063,496.9,1.0005,4257.3,1.0037,937.6,,
+gdm_intercode_ctf_crossed,1.0008,4519.0,1.0001,8318.6,1.0,3689.7,,
+swe_bench_crossed,1.0,10778.6,1.0003,6496.9,1.0002,7778.4,,
+boolq_normal,0.9999,10087.3,,,0.9999,9265.3,1.0005,8226.2

@@ -1,0 +1,14 @@
+check,true,posterior_mean,hdi_low,hdi_high,in_hdi,note
+"crossed: corr(true, est) model effects",1.0,0.9951,,,True,pass if >= 0.95
+crossed: 94% HDI coverage of 8 model effects,0.94,1.0,,,True,"8/8 covered, pass if >= 6"
+crossed: sigma_item,1.2,1.1467,0.9592,1.3423,True,
+crossed: rho (intra-item corr),0.2095,0.2107,0.1824,0.2399,True,
+"crossed-harsh: corr(true, est) model effects",1.0,0.9939,,,True,45 models; pass if >= 0.95
+crossed-harsh: 94% HDI coverage of 45 centred model effects,0.94,0.8667,,,True,"39/45 covered, pass if >= 39; raw intercepts share an unidentified item-pool-mean offset in this regime (posterior-mean offset +0.22 logit)"
+crossed-harsh: 94% HDI coverage of 45 item-marginal abilities,0.94,0.9111,,,True,"41/45 covered (probability scale), pass if >= 39"
+crossed-harsh: rho (intra-item corr),0.688,0.6811,0.6699,0.6914,True,"bimodal item pool (~49% never solved), Gaussian item prior misspecified by design"
+repro: sigma_run = 0.20,0.2,0.2319,0.1747,0.2938,True,
+"repro: sigma_run = 0 (null, prior-vs-posterior)",0.0,0.0599,0.0001,0.1213,True,"concentration P(<0.05)_post/P(<0.05)_prior = 0.429/0.040 = 10.8, pass if >= 10"
+boolq: 94% HDI coverage of 5 thetas,0.94,1.0,,,True,"5/5 covered, pass if >= 4"
+boolq: sigma_run,0.02,0.0195,0.0182,0.021,True,
+"boolq: corr(true, est) sigma_char per model",1.0,0.9816,,,True,pass if >= 0.8

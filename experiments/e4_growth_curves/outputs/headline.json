@@ -1,0 +1,226 @@
+{
+  "velocity": [
+    {
+      "task": "cybench",
+      "n_models": 12,
+      "n_models_excluded_smallN": 3,
+      "release_span_yr": 1.002,
+      "beta_mean": 2.9395079612731934,
+      "beta_hdi3": 1.2175524234771729,
+      "beta_hdi97": 4.595589637756348,
+      "P(beta>0)": 0.996625,
+      "sigma_model_mean": 0.9131613969802856,
+      "sigma_model_hdi3": 0.5498508214950562,
+      "sigma_model_hdi97": 1.332641363143921,
+      "trend_acc_at_first_release": 0.10903381405991787,
+      "trend_acc_at_last_release": 0.6618875332083444,
+      "diag_max_r_hat": 1.0011,
+      "diag_min_ess_bulk": 4033.4043,
+      "diag_min_ess_tail": 3736.4724,
+      "diag_n_divergences": 0,
+      "diag_n_params": 3
+    },
+    {
+      "task": "gdm_intercode_ctf",
+      "n_models": 8,
+      "n_models_excluded_smallN": 0,
+      "release_span_yr": 1.002,
+      "beta_mean": 0.9243637919425964,
+      "beta_hdi3": 0.003907246049493551,
+      "beta_hdi97": 1.9318933486938477,
+      "P(beta>0)": 0.961375,
+      "sigma_model_mean": 0.4516766369342804,
+      "sigma_model_hdi3": 0.2255214899778366,
+      "sigma_model_hdi97": 0.7432711720466614,
+      "trend_acc_at_first_release": 0.4929196318689425,
+      "trend_acc_at_last_release": 0.708063510894944,
+      "diag_max_r_hat": 1.0021,
+      "diag_min_ess_bulk": 3078.3564,
+      "diag_min_ess_tail": 3085.3378,
+      "diag_n_divergences": 0,
+      "diag_n_params": 3
+    },
+    {
+      "task": "swe_bench",
+      "n_models": 3,
+      "n_models_excluded_smallN": 2,
+      "release_span_yr": 0.277,
+      "beta_mean": -1.0196316242218018,
+      "beta_hdi3": -3.9467976093292236,
+      "beta_hdi97": 2.0290961265563965,
+      "P(beta>0)": 0.235375,
+      "sigma_model_mean": 0.5162073969841003,
+      "sigma_model_hdi3": 0.07028096169233322,
+      "sigma_model_hdi97": 1.2088851928710938,
+      "trend_acc_at_first_release": 0.42083182739335406,
+      "trend_acc_at_last_release": 0.35520974518087045,
+      "diag_max_r_hat": 1.0021,
+      "diag_min_ess_bulk": 1488.9241,
+      "diag_min_ess_tail": 2165.7147,
+      "diag_n_divergences": 3,
+      "diag_n_params": 3
+    },
+    {
+      "task": "boolq_preference",
+      "n_models": 5,
+      "n_models_excluded_smallN": 0,
+      "release_span_yr": 1.002,
+      "beta_mean": -0.2968353033065796,
+      "beta_hdi3": -2.2451536655426025,
+      "beta_hdi97": 1.9113969802856445,
+      "P(beta>0)": 0.377625,
+      "sigma_model_mean": 1.07065749168396,
+      "sigma_model_hdi3": 0.49965059757232666,
+      "sigma_model_hdi97": 1.7462838888168335,
+      "trend_acc_at_first_release": 0.7715318931527746,
+      "trend_acc_at_last_release": 0.735317058553184,
+      "diag_max_r_hat": 1.0021,
+      "diag_min_ess_bulk": 3331.3513,
+      "diag_min_ess_tail": 3298.4108,
+      "diag_n_divergences": 0,
+      "diag_n_params": 3
+    }
+  ],
+  "frontier_descriptive_record_paths": [
+    {
+      "task": "cybench",
+      "n_frontier": 7,
+      "frontier_models": "gpt-4o-2024-08-06;o1-2024-12-17;o3-2025-04-16;o4-mini-2025-04-16;claude-sonnet-4;claude-opus-4-1;gpt-5",
+      "selection_note": "descriptive record path: subset is monotone by construction, P-values would be ~1 under any truth incl. no trend; see frontier_null.csv for selection-aware tests",
+      "descr_beta_mean": 3.1051278114318848,
+      "descr_beta_hdi3": 2.438481330871582,
+      "descr_beta_hdi97": 3.7421188354492188,
+      "diag_max_r_hat": 1.0027,
+      "diag_min_ess_bulk": 2408.914,
+      "diag_min_ess_tail": 2596.3824,
+      "diag_n_divergences": 0,
+      "diag_n_params": 3,
+      "descr_beta2_mean": -0.9172484278678894,
+      "descr_beta2_hdi3": -2.6067419052124023,
+      "descr_beta2_hdi97": 0.7654404044151306,
+      "quad_max_r_hat": 1.0039,
+      "quad_divergences": 0
+    },
+    {
+      "task": "gdm_intercode_ctf",
+      "n_frontier": 6,
+      "frontier_models": "gpt-4o-2024-08-06;mistral-large-2411;o4-mini-2025-04-16;claude-sonnet-4;claude-opus-4-1;gpt-5",
+      "selection_note": "descriptive record path: subset is monotone by construction, P-values would be ~1 under any truth incl. no trend; see frontier_null.csv for selection-aware tests",
+      "descr_beta_mean": 0.9667773246765137,
+      "descr_beta_hdi3": 0.1180429458618164,
+      "descr_beta_hdi97": 1.7331864833831787,
+      "diag_max_r_hat": 1.0019,
+      "diag_min_ess_bulk": 2092.0874,
+      "diag_min_ess_tail": 2551.4745,
+      "diag_n_divergences": 0,
+      "diag_n_params": 3,
+      "descr_beta2_mean": 0.7391470670700073,
+      "descr_beta2_hdi3": -1.5011615753173828,
+      "descr_beta2_hdi97": 2.9394617080688477,
+      "quad_max_r_hat": 1.0034,
+      "quad_divergences": 0
+    },
+    {
+      "task": "swe_bench",
+      "n_frontier": 1,
+      "frontier_models": "claude-3-5-sonnet-20241022",
+      "selection_note": "descriptive record path: subset is monotone by construction, P-values would be ~1 under any truth incl. no trend; see frontier_null.csv for selection-aware tests"
+    },
+    {
+      "task": "boolq_preference",
+      "n_frontier": 1,
+      "frontier_models": "gpt-4o-2024-08-06",
+      "selection_note": "descriptive record path: subset is monotone by construction, P-values would be ~1 under any truth incl. no trend; see frontier_null.csv for selection-aware tests"
+    }
+  ],
+  "frontier_selection_tests": [
+    {
+      "task": "cybench",
+      "n_eligible_models": 12,
+      "obs_records_min_over_tie_orders": 6,
+      "obs_records_max_over_tie_orders": 7,
+      "expected_records_null": 3.103210678210678,
+      "p_records_exact_exchangeable": 0.03417353511971568,
+      "p_records_exact_at_max_tie_order": 0.006324912067099567,
+      "p_records_sim_flat_null": 0.034,
+      "obs_record_slope_min": 3.1904906920820446,
+      "obs_record_slope_max": 3.1950669539001764,
+      "flat_null_slope_mean": 3.951465146997244,
+      "flat_null_slope_q3": 0.30870499847460037,
+      "flat_null_slope_q97": 11.243391174304856,
+      "flat_null_frac_slope_defined": 0.92025,
+      "p_slope_ge_obs_flat_null": 0.5069274653626732,
+      "obs_record_quad_min": -1.002375800750046,
+      "obs_record_quad_max": -0.9554860146154261,
+      "linear_ppc_quad_mean": 0.698562115644343,
+      "linear_ppc_quad_q3": -9.2248050320348,
+      "linear_ppc_quad_q97": 15.535430883683983,
+      "linear_ppc_frac_quad_defined": 0.975,
+      "p_quad_le_obs_linear_ppc": 0.4264102564102564,
+      "n_reps": 4000,
+      "null_fit_max_r_hat": 1.0011,
+      "null_fit_divergences": 0
+    },
+    {
+      "task": "gdm_intercode_ctf",
+      "n_eligible_models": 8,
+      "obs_records_min_over_tie_orders": 6,
+      "obs_records_max_over_tie_orders": 6,
+      "expected_records_null": 2.717857142857143,
+      "p_records_exact_exchangeable": 0.008705357142857141,
+      "p_records_exact_at_max_tie_order": 0.008705357142857141,
+      "p_records_sim_flat_null": 0.0075,
+      "obs_record_slope_min": 1.0132005910695718,
+      "obs_record_slope_max": 1.0132005910695718,
+      "flat_null_slope_mean": 1.4257083581186762,
+      "flat_null_slope_q3": 0.08615000457187914,
+      "flat_null_slope_q97": 4.978452593864361,
+      "flat_null_frac_slope_defined": 0.87475,
+      "p_slope_ge_obs_flat_null": 0.5201486138896828,
+      "obs_record_quad_min": 1.1986296477630314,
+      "obs_record_quad_max": 1.1986296477630314,
+      "linear_ppc_quad_mean": 0.7824290459990231,
+      "linear_ppc_quad_q3": -4.231403639178457,
+      "linear_ppc_quad_q97": 8.190528702449123,
+      "linear_ppc_frac_quad_defined": 0.866,
+      "p_quad_le_obs_linear_ppc": 0.7179561200923787,
+      "n_reps": 4000,
+      "null_fit_max_r_hat": 1.0025,
+      "null_fit_divergences": 0
+    }
+  ],
+  "data_checks": {
+    "dedupe_rows_dropped": 340,
+    "dedupe_distinct_eval_ids": 298,
+    "dedupe_copies_per_key_min": 2,
+    "dedupe_copies_per_key_max": 5,
+    "boolq_split_weighted_acc": {
+      "claude-3-7-sonnet": {
+        "train": 0.653572046696778,
+        "validation": 0.6856850455687771
+      },
+      "claude-opus-4-1": {
+        "train": 0.8306756360219816,
+        "validation": 0.8288803983923982
+      },
+      "claude-sonnet-4": {
+        "train": 0.5002804645586019,
+        "validation": 0.510819360961721
+      },
+      "gpt-4o-2024-08-06": {
+        "train": 0.8876793111532871,
+        "validation": 0.89530345800988
+      },
+      "gpt-5": {
+        "train": 0.8737439453338146,
+        "validation": 0.8742682394058541
+      }
+    },
+    "boolq_max_abs_train_validation_diff": 0.03211299887199903
+  },
+  "synthetic_coverage": {
+    "boolq_like": 1.0,
+    "cybench_like": 0.9,
+    "swe_like_narrow": 1.0
+  }
+}

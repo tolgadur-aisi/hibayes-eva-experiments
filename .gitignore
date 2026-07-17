@@ -1,0 +1,11 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# eva prod data extracts — large and AISI-internal; regenerate via shared/extract.py
+# (data/MANIFEST.json and data/scorer_inventory.json stay tracked as snapshot provenance)
+data/*.parquet
+
+# Fitted posteriors — large; regenerate via `uv run python -m experiments.<id>.run`
+experiments/*/outputs/*.idata.nc

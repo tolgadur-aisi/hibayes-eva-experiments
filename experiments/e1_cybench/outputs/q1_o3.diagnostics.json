@@ -1,0 +1,8 @@
+{
+  "model": "simplified_group_binomial_exponentialq1_o3",
+  "max_r_hat": 1.0078,
+  "min_ess_bulk": 796.4636,
+  "min_ess_tail": 1557.1288,
+  "n_divergences": 0,
+  "n_params": 82
+}

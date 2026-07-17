@@ -1,0 +1,9 @@
+{
+  "model": "run_repro_binomial",
+  "tag": "synth_repro_alt",
+  "max_r_hat": 1.0017,
+  "min_ess_bulk": 2728.4414,
+  "min_ess_tail": 4618.8469,
+  "n_divergences": 0,
+  "n_params": 128
+}

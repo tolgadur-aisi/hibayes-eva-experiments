@@ -1,0 +1,13 @@
+[project]
+name = "hibayes-experiments"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "eva",
+    "hibayes",
+    "pyarrow>=25.0.0",
+]
+
+[tool.uv.sources]
+hibayes = { git = "https://github.com/UKGovernmentBEIS/hibayes.git" }
+eva = { path = "../eva/client", editable = true }

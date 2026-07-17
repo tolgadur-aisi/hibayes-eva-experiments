@@ -1,0 +1,10 @@
+{
+  "extracted_at": "2026-07-16T10:26:06.467467+00:00",
+  "filters": "team=team_ru, status=success, no replay/mock/none models",
+  "files": [
+    "cybench.samples.parquet",
+    "gdm_intercode_ctf.samples.parquet",
+    "public_evals.parquet",
+    "swe_bench.samples.parquet"
+  ]
+}

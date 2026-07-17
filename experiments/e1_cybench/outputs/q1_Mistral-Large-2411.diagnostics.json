@@ -1,0 +1,8 @@
+{
+  "model": "simplified_group_binomial_exponentialq1_Mistral-Large-2411",
+  "max_r_hat": 1.004,
+  "min_ess_bulk": 983.5573,
+  "min_ess_tail": 1664.1758,
+  "n_divergences": 0,
+  "n_params": 82
+}

@@ -1,0 +1,4 @@
+target_accept,tag,sigma_run_mean,sigma_run_hdi_low,sigma_run_hdi_high,n_divergences,max_r_hat
+0.99,swe_bench_repro,0.1183,0.0,0.3115,1,1.0023
+0.95,swe_bench_repro_ta95,0.1188,0.0,0.3103,1,1.002
+0.97,swe_bench_repro_ta97,0.1195,0.0,0.3111,0,1.0028

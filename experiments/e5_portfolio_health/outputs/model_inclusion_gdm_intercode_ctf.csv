@@ -1,0 +1,16 @@
+model,n,k,included
+openai/o3,11816,6186.0,True
+gemma/gemma-3-27b-it,11060,5911.0,True
+openai/o4-mini,7128,4513.0,True
+openai/gpt-5,6545,5316.0,True
+anthropic/claude-sonnet-4-20250514,5581,3667.0,True
+anthropic/claude-opus-4-1-20250805,4744,3456.0,True
+mistralazure/Mistral-Large-2411-CAST,3950,2112.0,True
+mistralazure/Mistral-Large-2411,2370,1562.0,True
+azureai/Mistral-Large-2411,1580,831.0,True
+vllm//home/ubuntu/.cache/wb_model_registry/s3/oak,1264,359.0,True
+openai/gpt-4o-2024-08-06,869,464.0,True
+vllm//mnt/s3/teams/white-box/handover/models/cedar,158,49.0,True
+vllm//mnt/s3/teams/white-box/handover/models/oak,158,45.0,True
+vllm//mnt/s3/teams/white-box/handover/models/yew,158,28.0,True
+vllm/meta-llama/Llama-3.1-8B-Instruct,158,34.0,True

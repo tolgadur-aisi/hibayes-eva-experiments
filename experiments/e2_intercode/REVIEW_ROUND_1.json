@@ -1,0 +1,37 @@
+{
+  "review": "round_1",
+  "reviewer": "skeptical Bayesian statistician (Claude subagent)",
+  "date": "2026-07-16",
+  "approved": true,
+  "blocking_issues": [],
+  "verified": {
+    "data_handling": [
+      "Exclusion counts independently re-derived from data/gdm_intercode_ctf.samples.parquet: 83,078 raw - 180 error rows - 25,359 duplicate-run rows = 57,539 clean rows (matches outputs/data_log.json).",
+      "All 180 error rows confirmed to be openai/gpt-4o-2024-08-06 with '429' in the error text and score_includes null, so drop-as-unscored is forced, not a choice.",
+      "Limit policy stated and justified (resource-budget exhaustion scored as recorded = genuine failure); counts verified: 21,685 limit rows (token 19,072 / message 2,480 / time 122 / operator 11), 394 scored C - all match FINDINGS.",
+      "Duplicate-ingestion dedup is not just fingerprint matching: prep.py asserts per-(item,epoch) score AND token identity for every collapsed group; 33/64 = 52% claim checks out.",
+      "D1 homogeneity verified: cfg={} + intercode_agent solver, single task_version (0), 12 runs (5/2/2/3 per model), exactly 79 items x 10 epochs per run (n_total=10 in all 948 cells), all Jun 2025.",
+      "task_args heterogeneity policy is sane: restrict to dominant config (D1) + model variants as a random effect (D1X sensitivity); vllm exclusion justification verified (1 run each, chain solver embedded in task_args).",
+      "D2 fan-out structure verified: 35,814 single-sample runs, 14 items, Sep 17-21, 22 non-empty model x day batches; item effects in the model control day-to-day item-mix differences."
+    ],
+    "model_and_validation": [
+      "Likelihood matches data (binomial cell counts, cross-classified logistic random effects, non-centred); priors stated in run.py::PRIORS and FINDINGS.",
+      "Synthetic recovery genuinely performed: 4 saved synthetic fits (synth_a/b/c_pooled/c_het idata + diagnostics) on the exact D1 design, incl. a zero-run-variance null (no phantom variance: posterior 0.07, HDI upper 0.16) and a heterogeneous-run-SD scenario recovering all four per-model sigmas. The two out-of-HDI rows in synthetic_recovery.csv are reported honestly with the correct interpretation (finite-pop vs superpop; mild conservative shrinkage of sigma_run, which biases against the headline drift claim, not for it).",
+      "Convergence verified from diagnostics files: d1_primary 1.0057/753/1 div in 6000; d1_hetrun 1.0084/743/0; d2 1.0028/2000/0; synths 0 divergences. d1x_variants ess 175 on mu justified and independently CONFIRMED by this reviewer: mu + mean(item_effects) has ess 4265, centered item effects ess > 2865, var(item_effects) ess 3345 - the pathology is purely the location split and every reported d1x quantity is location-invariant with ess > 975.",
+      "Model-free dispersion check triangulates the model-based sigma_run (ratios 3.15/2.94 with MC p < 5e-4 for the two drifting providers, ~1 for gemma/mistralazure), so the drift finding does not rest on the prior."
+    ],
+    "claims_traced": [
+      "All 6 findings spot-checked against variance_shares.csv, sigma_run_per_model.csv, design_effects.csv, dispersion_check.csv, epoch_check.csv, claims.json - every number traced (challenge share 67.4% [62.6, 72.0]; pooled sigma_run 0.70 [0.40, 1.01]; per-model sigma_run incl. the honest 'prior-like' flag for the 2-run mistralazure; sigma_variant 0.37 [0.00, 0.80]; sigma_day 0.35 [0.20, 0.51]; gpt-5 +12.2pp [7.7, 16.8]; N_eff table incl. gemma 1274 [370, 1866] and ceilings ~22).",
+      "No causal overclaiming: run effects explicitly framed as quantify-not-attribute; N_eff > nominal correctly explained as stratification under the fixed-item estimand and caveated; D1 vs D2 non-comparability caveated."
+    ],
+    "plots": "All four plots have labelled axes/titles/legends and support the claims (run_effects_d1 and day_effects_d2 visually match the sigma_run / gpt-5 day findings)."
+  },
+  "suggestions": [
+    "d1_primary reports 1 divergence in 6000 draws; the requirement asks for 0 or an explicit justification - add one sentence (e.g. benign given target_accept=0.99, non-centred parameterisation, and the 0-divergence hetrun fit supporting the same claims), or bump target_accept and rerun.",
+    "FINDINGS 'r_hat 1.027 / ess 175 on the global intercept mu only' is slightly imprecise: raw item_effects coordinates inherit the slow location mode (max r_hat 1.03, min ess 175). The substantive justification is correct (verified), but reword to 'the location split between mu and the item-effect mean'.",
+    "Finding 2's '~8-17pp on run mean score' is not a single interval in design_effects.csv (hetrun sd_between_pp: azureai 10.8 [5.2, 17.7], CAST 10.9 [5.9, 17.1]); quote mean [HDI] directly for full traceability.",
+    "data_log.json's limit_rows_kept (21,685) is counted before dedup, so the clean dataset contains fewer limit rows; note the bookkeeping order or recount post-dedup.",
+    "Cosmetic: model colors are inconsistent across plots (gemma green in run_effects_d1.png, orange in neff_vs_epochs_d1.png), and the azureai curve is invisible under ML-2411-CAST in the N_eff plot."
+  ],
+  "summary": "Approved. Rigorous piece of work: hygiene policies are stated, justified, and independently reproduce from the raw parquet; the duplicate-ingestion discovery (52% of multi-sample runs) is real and materially important; synthetic recovery includes a null and a heterogeneous scenario with honest reporting of the two marginal misses; convergence claims check out, including the d1x location-mode justification which this review independently confirmed; every headline number traces to an output file; uncertainty and observational caveats are handled properly. Five non-blocking suggestions, mostly wording/traceability polish."
+}

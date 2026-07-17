@@ -1,0 +1,8 @@
+{
+  "model": "release_trend_logit_normaltrend_swe_bench",
+  "max_r_hat": 1.0021,
+  "min_ess_bulk": 1488.9241,
+  "min_ess_tail": 2165.7147,
+  "n_divergences": 3,
+  "n_params": 3
+}

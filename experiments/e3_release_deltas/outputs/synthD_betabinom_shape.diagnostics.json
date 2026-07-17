@@ -1,0 +1,8 @@
+{
+  "model": "fixed_model_item_binomialsynthD0",
+  "max_r_hat": 1.0051,
+  "min_ess_bulk": 770.6495,
+  "min_ess_tail": 1399.9016,
+  "n_divergences": 0,
+  "n_params": 86
+}

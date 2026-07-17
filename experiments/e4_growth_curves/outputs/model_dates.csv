@@ -1,0 +1,63 @@
+model_raw,canonical,release_date,source
+anthropic/claude-3-5-sonnet-20240620,claude-3-5-sonnet-20240620,2024-06-20,snapshot date embedded in model string
+anthropic/claude-3-5-sonnet-latest,claude-3-5-sonnet-20241022,2024-10-22,Anthropic upgraded Claude 3.5 Sonnet release 2024-10-22 (platform.claude.com release notes); `-latest` alias pointed at 20241022 during the run window (2025-01..2025-06)
+anthropic/claude-3-7-sonnet-20250219,claude-3-7-sonnet,2025-02-19,snapshot date embedded in claude-3-7-sonnet-20250219; `-latest` alias has only this snapshot
+anthropic/claude-3-7-sonnet-latest,claude-3-7-sonnet,2025-02-19,snapshot date embedded in claude-3-7-sonnet-20250219; `-latest` alias has only this snapshot
+anthropic/claude-3-haiku-20240307,claude-3-haiku,2024-03-07,snapshot date embedded in model string claude-3-haiku-20240307
+anthropic/claude-opus-4-1-20250805,claude-opus-4-1,2025-08-05,snapshot date embedded in claude-opus-4-1-20250805
+anthropic/claude-opus-4-20250514,claude-opus-4,2025-05-14,snapshot date embedded in claude-opus-4-20250514 (public launch 2025-05-22)
+anthropic/claude-sonnet-4-20250514,claude-sonnet-4,2025-05-14,snapshot date embedded in claude-sonnet-4-20250514 (public launch 2025-05-22)
+azureai/Mistral-Large-2411,mistral-large-2411,2024-11-19,Mistral Large 24.11 released 2024-11-19 (docs.mistral.ai; huggingface.co/mistralai/Mistral-Large-Instruct-2411)
+gemma/gemma-3-27b-it,gemma-3-27b-it,2025-03-12,Google 'Introducing Gemma 3' blog 2025-03-12 (ai.google.dev/gemma/docs/releases)
+mistralazure/Mistral-Large-2411,mistral-large-2411,2024-11-19,Mistral Large 24.11 released 2024-11-19 (docs.mistral.ai; huggingface.co/mistralai/Mistral-Large-Instruct-2411)
+mistralazure/Mistral-Large-2411-CAST,EXCLUDED,,modified deployment variant (Mistral-Large-2411-CAST)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::B9su2rxg,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::B9yZyYfV,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::B9yxrh0N,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BAJFlFSl,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BCQ4C6FQ,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BCSW2NXS,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BCX28alr,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BCX4E5bC,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BCoUjAxI,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BCp8ZYC5,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BCpK2wT6,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BD7zX89a,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BDF60vZY,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BDVXJNu1,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BDVvHusM,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BDW73y1Q,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BDX8G5a4,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BE2eetTQ,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BE4iG2wt,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BEJmTBGS,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BEJtw4QO,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BEKd3nW7,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BEe45eW4,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BEe45eW4:ckpt-step-30,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BEe45eW4:ckpt-step-60,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BEe48fb3,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BEe48fb3:ckpt-step-30,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BEe4Bz5J,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BEf0pr5u,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BEgRJ3Fq,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BEiEyAT2,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BG3bJ5gB,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BG3muM73,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BG4zKjLN,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/ft:gpt-4o-2024-08-06:uk-dsit::BG5HnntI,EXCLUDED,,uk-dsit fine-tune of gpt-4o (not a public model release)
+openai/gpt-4o,gpt-4o-2024-08-06,2024-08-06,snapshot date embedded in model string; `openai/gpt-4o` alias resolved to this snapshot in the run window (Jan 2025)
+openai/gpt-4o-2024-08-06,gpt-4o-2024-08-06,2024-08-06,snapshot date embedded in model string; `openai/gpt-4o` alias resolved to this snapshot in the run window (Jan 2025)
+openai/gpt-5,gpt-5,2025-08-07,snapshot date embedded in gpt-5-2025-08-07; GPT-5 launch 2025-08-07 (techcrunch.com/2025/08/07/openais-gpt-5-is-here); `openai/gpt-5` alias resolved to this snapshot in the run window
+openai/gpt-5-2025-08-07,gpt-5,2025-08-07,snapshot date embedded in gpt-5-2025-08-07; GPT-5 launch 2025-08-07 (techcrunch.com/2025/08/07/openais-gpt-5-is-here); `openai/gpt-5` alias resolved to this snapshot in the run window
+openai/o1,o1-2024-12-17,2024-12-17,snapshot date embedded in model string (o1 API release); `openai/o1` alias has only this API snapshot
+openai/o1-2024-12-17,o1-2024-12-17,2024-12-17,snapshot date embedded in model string (o1 API release); `openai/o1` alias has only this API snapshot
+openai/o1-mini,o1-mini,2024-09-12,OpenAI o1-preview/o1-mini launch 2024-09-12 (openai.com/index/openai-o1-mini-advancing-cost-efficient-reasoning)
+openai/o3,o3-2025-04-16,2025-04-16,OpenAI o3/o4-mini launch 2025-04-16 (community.openai.com announcement t/1230164; TechCrunch 2025-04-16); `openai/o3` alias has only this snapshot
+openai/o3-mini,o3-mini,2025-01-31,OpenAI o3-mini launch 2025-01-31 (openai.com/index/openai-o3-mini; TechCrunch 2025-01-31)
+openai/o4-mini,o4-mini-2025-04-16,2025-04-16,OpenAI o3/o4-mini launch 2025-04-16 (same sources); `openai/o4-mini` alias has only this snapshot
+vllm//home/ubuntu/.cache/wb_model_registry/s3/oak,EXCLUDED,,"locally hosted vllm checkpoint (base model has a public release date, but served-weight provenance is unverifiable)"
+vllm//mnt/s3/teams/white-box/handover/models/cedar,EXCLUDED,,"locally hosted vllm checkpoint (base model has a public release date, but served-weight provenance is unverifiable)"
+vllm//mnt/s3/teams/white-box/handover/models/oak,EXCLUDED,,"locally hosted vllm checkpoint (base model has a public release date, but served-weight provenance is unverifiable)"
+vllm//mnt/s3/teams/white-box/handover/models/yew,EXCLUDED,,"locally hosted vllm checkpoint (base model has a public release date, but served-weight provenance is unverifiable)"
+vllm/meta-llama/Llama-3.1-8B-Instruct,EXCLUDED,,"locally hosted vllm checkpoint (base model has a public release date, but served-weight provenance is unverifiable)"
