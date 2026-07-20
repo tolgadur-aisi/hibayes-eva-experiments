@@ -85,20 +85,12 @@ def summarise(series: pd.Series, name: str, vtype: str, by_task: pd.Series) -> d
     }
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--pass-fail-only",
-        action="store_true",
-        help="Restrict to tasks in outputs/pass_fail_tasks.txt (run list_evals.py first)",
-    )
-    args = parser.parse_args()
-
+def main(pass_fail_only: bool = False) -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
     task_filter = ""
     params = {}
-    if args.pass_fail_only:
+    if pass_fail_only:
         tasks = (
             (OUT_DIR / "pass_fail_tasks.txt").read_text().strip().splitlines()
         )
@@ -148,4 +140,11 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--pass-fail-only",
+        action="store_true",
+        help="Restrict to tasks in outputs/pass_fail_tasks.txt (run list_evals.py first)",
+    )
+    args = parser.parse_args()
+    main(pass_fail_only=args.pass_fail_only)

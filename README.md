@@ -32,16 +32,21 @@ eva-check` verifies the setup. eva enforces row-level security: without the
 right team role, queries silently return only the rows you can see.
 
 ```bash
-# 0. discovery — which tasks are pass/fail, which covariates have coverage
-uv run python modeling/discovery/list_evals.py
-uv run python modeling/discovery/list_variables.py --pass-fail-only
-
-# 1. extract sample-level data for the selected pass/fail tasks
-uv run python modeling/extract.py
+# 1. discover + extract (the eva-facing step): classifies every task's outcome,
+#    reports covariate coverage, then extracts the tasks that are pass/fail AND
+#    have a score column configured in config.yaml
+uv run python -m modeling.extract
 
 # 2. fit + check + plot, all from the config
 uv run hibayes-full --config modeling/config.yaml --out modeling/.output --no-tui
 ```
+
+Discovery results land in `modeling/discovery/outputs/` (`evals_inventory.csv`,
+`variables_coverage.csv`, ...). If discovery surfaces a pass/fail task the
+config doesn't map yet, extract reports and skips it — add it to
+`coerce_pass_fail_score.score_column_by_benchmark` in the config and re-run.
+`--tasks <names>` skips discovery entirely; the discovery scripts also run
+standalone.
 
 Outputs land in `modeling/.output/`: convergence and predictive checks under
 `models/*/diagnostics/`, the forest plot and summary table under

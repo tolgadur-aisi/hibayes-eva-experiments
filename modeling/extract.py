@@ -1,21 +1,25 @@
-"""Extract sample-level pass/fail data from eva prod for the unified scaffold model.
+"""Discover pass/fail evals in eva and extract their sample-level data.
+
+The one eva-facing step of the pipeline. Runs discovery (which tasks are
+pass/fail, which covariates have coverage -- see modeling/discovery/), then
+extracts every task that discovery classified as pass/fail AND that has a
+score column configured in modeling/config.yaml. Tasks discovery surfaces
+beyond the config are reported, not extracted: adding a benchmark to the
+model stays a reviewed config change, not a side effect of the warehouse
+growing.
 
 Run from this repo on an AISI platform dev VM (needs VPC access to the eva
 Aurora cluster, AWS credentials, and team_ru membership -- `uv run eva-check`
 verifies the setup):
 
-    uv run python modeling/extract.py
+    uv run python -m modeling.extract
+    uv run python -m modeling.extract --tasks cybench swe_bench   # skip discovery
 
 Writes one parquet per task to data/modeling/ plus an eval-level extract and a
-manifest. Tasks default to the known pass/fail benchmarks; after running
-modeling/discovery/list_evals.py, pass --tasks to extend:
-
-    uv run python modeling/extract.py --tasks cybench gdm_intercode_ctf swe_bench
-
-The extract is intentionally wide: it carries every covariate the modeling
-config might select (solver, solver_args, task_args, model_generate_config,
-sandbox_type, message_limit) so re-extraction is not needed when the config
-changes.
+manifest. The extract is intentionally wide: it carries every covariate the
+modeling config might select (solver, solver_args, task_args,
+model_generate_config, sandbox_type, message_limit) so re-extraction is not
+needed when the config changes.
 """
 
 import argparse
@@ -24,13 +28,16 @@ from datetime import date
 from pathlib import Path
 
 import pandas as pd
+import yaml
 from eva import query, samples
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data" / "modeling"
+from modeling.discovery import list_evals, list_variables
 
-# Pass/fail benchmarks on the public team_ru slice (see
-# modeling/discovery/list_evals.py output for the authoritative list).
-DEFAULT_TASKS = ["cybench", "gdm_intercode_ctf", "swe_bench"]
+DATA_DIR = Path(__file__).resolve().parent.parent / "data" / "modeling"
+CONFIG = Path(__file__).resolve().parent / "config.yaml"
+PASS_FAIL_TASKS = (
+    Path(__file__).resolve().parent / "discovery" / "outputs" / "pass_fail_tasks.txt"
+)
 
 BASE_FILTERS = """
     e.team = 'team_ru' AND e.status = 'success'
@@ -103,28 +110,75 @@ def extract_samples(task: str) -> None:
     print(f"[done] {out.name}: {len(df)} rows, cols={list(df.columns)}")
 
 
+def configured_benchmarks() -> set[str]:
+    """Benchmarks with a score column in the config's coerce_pass_fail_score."""
+    config = yaml.safe_load(CONFIG.read_text())
+    for proc in config["data_process"]["processors"]:
+        if isinstance(proc, dict) and "coerce_pass_fail_score" in proc:
+            return set(proc["coerce_pass_fail_score"]["score_column_by_benchmark"])
+    raise ValueError(f"no coerce_pass_fail_score processor found in {CONFIG}")
+
+
+def discover_tasks() -> list[str]:
+    """Run discovery, then pick the tasks that are pass/fail AND configured."""
+    print("=== discovery: outcome types ===")
+    list_evals.main()
+    print("\n=== discovery: variable coverage ===")
+    list_variables.main(pass_fail_only=True)
+
+    discovered = set(PASS_FAIL_TASKS.read_text().split())
+    configured = configured_benchmarks()
+    if unconfigured := sorted(discovered - configured):
+        print(
+            f"\n[extract] pass/fail tasks with no score column in {CONFIG.name} -- "
+            f"skipping: {unconfigured}\n"
+            f"[extract] to include one, add it to coerce_pass_fail_score."
+            f"score_column_by_benchmark and re-run."
+        )
+    if stale := sorted(configured - discovered):
+        print(
+            f"\n[extract] configured benchmarks that discovery did NOT classify as "
+            f"pass/fail (check discovery/outputs/evals_inventory.csv): {stale}"
+        )
+    tasks = sorted(discovered & configured)
+    if not tasks:
+        raise SystemExit(
+            "[extract] no benchmark is both discovered pass/fail and configured; "
+            "nothing to extract."
+        )
+    return tasks
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--tasks", nargs="+", default=DEFAULT_TASKS)
+    parser.add_argument(
+        "--tasks",
+        nargs="+",
+        default=None,
+        help="Explicit task list; skips discovery and the config cross-check.",
+    )
     args = parser.parse_args()
+
+    tasks = args.tasks if args.tasks else discover_tasks()
+    print(f"\n[extract] extracting {len(tasks)} benchmarks: {tasks}")
 
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-    print("=== eval-level extract ===")
+    print("\n=== eval-level extract ===")
     evals_df = query(
-        EVAL_SQL, params={"tasks": args.tasks}, statement_timeout_ms=240_000
+        EVAL_SQL, params={"tasks": tasks}, statement_timeout_ms=240_000
     )
     evals_df.to_parquet(DATA_DIR / "evals.parquet", index=False)
     print(f"[done] evals.parquet: {len(evals_df)} rows")
     print(evals_df.groupby("task_name").size().to_string())
 
     print("\n=== sample-level extracts ===")
-    for task in args.tasks:
+    for task in tasks:
         extract_samples(task)
 
     manifest = {
         "extracted_at": pd.Timestamp.now(tz="UTC").isoformat(),
-        "tasks": args.tasks,
+        "tasks": tasks,
         "filters": "team=team_ru, status=success, no replay/mock/none models",
         "files": sorted(p.name for p in DATA_DIR.glob("*.parquet")),
     }
