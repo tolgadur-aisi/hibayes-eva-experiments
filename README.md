@@ -56,8 +56,13 @@ eva has no scaffold column. We derive one:
 `solver | canonical(task_args − data-selection keys) | canonical(solver_args)`
 (see `derive_scaffold` in [`modeling/processors.py`](modeling/processors.py)).
 Keys that select *items* rather than configure the agent (e.g. cybench
-variants) are excluded via config and belong to item identity instead. If the
-scaffold definition changes, only `config.yaml` changes.
+variants) are excluded via config and belong to item identity instead. On real
+data, incidental knobs (limits, seeds, tool lists) can fragment the scaffold
+factor -- watch the logged cardinality and switch to the `scaffold_keys`
+allowlist once discovery shows which keys matter. Reasoning configuration
+(`model_generate_config`) is surfaced by discovery but not yet part of the
+scaffold or the model. If the scaffold definition changes, only `config.yaml`
+changes.
 
 ## Validation
 
@@ -68,9 +73,14 @@ uv run python -m modeling.synth.run_synth
 ```
 
 This generates eva-shaped data with known parameters, runs `hibayes-full` on
-it, and checks the posteriors recover the truth (94% HDI coverage across all
-16 generating parameters, item-effect correlation ≥ 0.9). Run it after any
-change to the processors, model, or config.
+it, and checks the posteriors recover the truth (gate: ≥85% of the 16
+generating parameters inside their 94% HDI and item-effect correlation ≥ 0.9;
+the pinned seed recovers 16/16 at correlation 0.98). Run it after any change
+to the processors, model, or config. Note the synthetic design is fully
+crossed and balanced -- it validates the pipeline and the model's
+self-consistency, not the confounding that unbalanced real data can introduce
+(see below). `uv run pytest` covers the score-coercion and scaffold-label
+decision tables.
 
 ## Data notes
 
@@ -90,9 +100,11 @@ change to the processors, model, or config.
   provider/benchmark pairs (see E2/E5 in the historical findings), so the
   binomial likelihood is overdispersed and intervals are somewhat optimistic.
   v2 should add a run-level random effect — a config + small model change.
-- **model × scaffold overlap.** Additive effects are only identified where
-  models share scaffolds. Check the crossing table (`.output/processed_data.parquet`)
-  before reading the forest plot causally; historically some model pairs had
-  zero shared configs.
+- **model × scaffold × benchmark overlap.** Additive effects are only
+  identified where levels are crossed; where a model or scaffold appears on
+  only some benchmarks, its effect is confounded with benchmark difficulty and
+  the posterior falls back on the prior. Check the crossing table
+  (`.output/processed_data.parquet`) before reading the forest plot causally;
+  historically some model pairs had zero shared configs.
 - **Three benchmarks** on the public team_ru slice. The discovery scripts are
   the path to widening this once broader eva access is in scope.
