@@ -1,8 +1,0 @@
-{
-  "model": "crossed_var_hetrund1_hetrun",
-  "max_r_hat": 1.0084,
-  "min_ess_bulk": 742.7417,
-  "min_ess_tail": 1534.7479,
-  "n_divergences": 0,
-  "n_params": 419
-}

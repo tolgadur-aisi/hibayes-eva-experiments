@@ -1,8 +1,0 @@
-{
-  "model": "release_trend_logit_normalnull_cybench",
-  "max_r_hat": 1.0011,
-  "min_ess_bulk": 3271.3287,
-  "min_ess_tail": 2542.2963,
-  "n_divergences": 0,
-  "n_params": 2
-}

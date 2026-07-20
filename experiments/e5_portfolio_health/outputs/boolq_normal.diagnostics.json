@@ -1,9 +1,0 @@
-{
-  "model": "boolq_normal",
-  "tag": "boolq_normal",
-  "max_r_hat": 1.0125,
-  "min_ess_bulk": 318.5645,
-  "min_ess_tail": 423.8472,
-  "n_divergences": 0,
-  "n_params": 609
-}

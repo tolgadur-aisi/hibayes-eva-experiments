@@ -1,8 +1,0 @@
-{
-  "model": "simplified_group_binomial_exponentialq1_gemma-3-27b-it",
-  "max_r_hat": 1.0026,
-  "min_ess_bulk": 863.5155,
-  "min_ess_tail": 1424.2117,
-  "n_divergences": 0,
-  "n_params": 82
-}

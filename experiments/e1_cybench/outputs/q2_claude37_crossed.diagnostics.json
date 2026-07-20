@@ -1,8 +1,0 @@
-{
-  "model": "challenge_run_binomialq2_claude37_crossed",
-  "max_r_hat": 1.0032,
-  "min_ess_bulk": 758.3417,
-  "min_ess_tail": 1563.4369,
-  "n_divergences": 0,
-  "n_params": 191
-}

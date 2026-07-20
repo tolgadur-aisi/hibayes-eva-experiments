@@ -1,9 +1,0 @@
-{
-  "model": "crossed_binomial",
-  "tag": "swe_bench_crossed",
-  "max_r_hat": 1.0124,
-  "min_ess_bulk": 597.1877,
-  "min_ess_tail": 1061.3047,
-  "n_divergences": 0,
-  "n_params": 124
-}

@@ -1,5 +1,0 @@
-model,runs,items_used,epochs_per_item,var_ratio_obs_over_binom,mc_p_value
-ML-2411 (azureai),2,63,10,3.1502457790126095,0.0
-gemma-3-27b,5,62,10,1.0998735777496842,0.1715
-ML-2411 (mistralazure),2,51,10,0.9090909090909088,0.641
-ML-2411-CAST,3,62,10,2.941488234047064,0.0
