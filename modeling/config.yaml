@@ -1,0 +1,94 @@
+# Unified scaffold model: pass/fail ~ model + scaffold + benchmark_item,
+# with benchmark_item effects nested within benchmark.
+#
+# Run from the repo root (data must exist -- see modeling/extract.py):
+#
+#   uv run hibayes-full --config modeling/config.yaml --out modeling/.output --no-tui
+#
+# or stage by stage while iterating:
+#
+#   uv run hibayes-load    --config modeling/config.yaml --out modeling/.output/load --no-tui
+#   uv run hibayes-process --config modeling/config.yaml --analysis-state modeling/.output/load --out modeling/.output/process --no-tui
+#   uv run hibayes-model   --config modeling/config.yaml --analysis-state modeling/.output/process --out modeling/.output/models --no-tui
+#   uv run hibayes-comm    --config modeling/config.yaml --analysis-state modeling/.output/models --out modeling/.output/communicate --no-tui
+
+platform:
+  device_type: cpu
+  num_devices: 4
+
+# eva data arrives as pre-extracted parquet (modeling/extract.py), not Inspect
+# logs, so we use hibayes' extracted_data loading rather than log extractors.
+data_loader:
+  paths:
+    extracted_data:
+      - data/modeling/cybench.samples.parquet
+      - data/modeling/gdm_intercode_ctf.samples.parquet
+      - data/modeling/swe_bench.samples.parquet
+
+data_process:
+  path: modeling/processors.py
+  processors:
+    # binary outcome from each benchmark's headline scorer column
+    - coerce_pass_fail_score:
+        score_column_by_benchmark:
+          cybench: score_includes
+          gdm_intercode_ctf: score_includes
+          swe_bench: score_swe_bench_scorer
+    # scaffold = solver + solver_args + task_args (minus data-selection keys).
+    # cybench's variants change the challenge prompts, so they are item
+    # identity, not scaffold; excluded here and reflected in task_version/item ids.
+    - derive_scaffold:
+        exclude_task_args: [variants, sample_ids, samples]
+        include_solver_args: true
+    - add_benchmark_item
+    # her step 2: keep only rows with every modeled variable present
+    - drop_rows_with_missing_features:
+        feature_names: [model, scaffold, benchmark, benchmark_item, score]
+    # aggregate attempts to binomial counts per design cell
+    - groupby:
+        groupby_columns: [model, scaffold, benchmark, benchmark_item]
+    - extract_observed_feature:
+        feature_name: n_correct
+    - extract_features:
+        continuous_features: [n_total]
+        categorical_features: [model, scaffold, benchmark, benchmark_item]
+        effect_coding_for_main_effects: true
+    # item -> benchmark map that gives the model its nesting structure
+    - extract_item_benchmark_index
+
+model:
+  path: modeling/custom_model.py
+  models:
+    - name: item_nested_binomial
+      config:
+        tag: unified_v1
+        main_effects: [model, scaffold]
+        item_effect: benchmark_item
+        nest_within: benchmark
+        prior_main_effects_scale: 1.0
+        prior_nest_effects_scale: 2.0
+        prior_item_sigma_scale: 2.0
+        fit:
+          samples: 2000
+          warmup: 1500
+          chains: 4
+          seed: 0
+
+check:
+  checkers:
+    - prior_predictive_plot: {interactive: false}
+    - posterior_predictive_plot: {interactive: false}
+    - r_hat
+    - divergences: {threshold: 10}
+    - ess_bulk
+    - ess_tail
+    - loo
+    - bfmi
+    - waic
+
+communicate:
+  communicators:
+    - forest_plot:
+        vars: [model_effects, scaffold_effects, benchmark_effects, benchmark_item_sigma]
+        vertical_line: 0
+    - summary_table
