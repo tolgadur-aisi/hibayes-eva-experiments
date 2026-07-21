@@ -68,7 +68,9 @@ eva has no scaffold column. We derive one:
 `solver | canonical(task_args − data-selection keys) | canonical(solver_args)`
 (see `derive_scaffold` in [`modeling/processors.py`](modeling/processors.py)).
 Keys that select *items* rather than configure the agent (e.g. cybench
-variants) are excluded via config and belong to item identity instead. On real
+variants) are excluded via config and belong to item identity instead, as are
+token/message budgets — those are modeled separately as `token_given`, so
+leaving them in the scaffold label would make the two collinear. On real
 data, incidental knobs (limits, seeds, tool lists) can fragment the scaffold
 factor -- watch the logged cardinality and switch to the `scaffold_keys`
 allowlist once discovery shows which keys matter. Reasoning configuration
@@ -84,11 +86,12 @@ The full pipeline — real config, synthetic data — is exercised by:
 uv run python -m modeling.synth.run_synth
 ```
 
-This generates eva-shaped data with known parameters, runs `hibayes-full` on
-it, and checks the posteriors recover the truth (gate: ≥85% of the 16
-generating parameters inside their 94% HDI and item-effect correlation ≥ 0.9;
-the pinned seed recovers 16/16 at correlation 0.98). Run it after any change
-to the processors, model, or config. Note the synthetic design is fully
+This generates eva-shaped data with known parameters — including a planted
+benchmark × token_given interaction — runs `hibayes-full` on it, and checks
+the posteriors recover the truth (gate: ≥85% of the 28 generating parameters
+inside their 94% HDI and item-effect correlation ≥ 0.9; the pinned seed
+recovers 25/28 — all misses by ≤0.03 — at correlation 0.99). Run it after any
+change to the processors, model, or config. Note the synthetic design is fully
 crossed and balanced -- it validates the pipeline and the model's
 self-consistency, not the confounding that unbalanced real data can introduce
 (see below). `uv run pytest` covers the score-coercion and scaffold-label
