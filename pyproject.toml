@@ -6,6 +6,7 @@ dependencies = [
     "eva",
     "hibayes",
     "pyarrow>=25.0.0",
+    "tqdm>=4.68.4",
 ]
 
 [tool.uv.sources]

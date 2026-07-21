@@ -32,6 +32,7 @@ from pathlib import Path
 import pandas as pd
 import yaml
 from eva import query, samples
+from tqdm import tqdm
 
 from modeling.discovery import list_evals, list_variables
 
@@ -122,12 +123,15 @@ def extract_samples(tasks: list[str]) -> None:
             for task in todo
             for lo, hi in window
         }
-        for future in as_completed(futures):
+        progress = tqdm(
+            as_completed(futures), total=len(futures), desc="sample chunks", unit="chunk"
+        )
+        for future in progress:
             task, lo, hi = futures[future]
             df = future.result()
             if len(df):
                 chunks[task].append(df)
-            print(f"  {task} {lo}..{hi}: {len(df)} rows")
+                progress.write(f"  {task} {lo}..{hi}: {len(df)} rows")
 
     for task in todo:
         if not chunks[task]:

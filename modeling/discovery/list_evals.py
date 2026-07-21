@@ -17,11 +17,12 @@ Outputs (committed so the selection is reviewable):
 
 import json
 from collections import Counter
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
 import pandas as pd
 from eva import query, samples
+from tqdm import tqdm
 
 OUT_DIR = Path(__file__).resolve().parent / "outputs"
 
@@ -113,19 +114,22 @@ def main() -> None:
     probed: dict[str, tuple[str, dict]] = {}
     with ProcessPoolExecutor(max_workers=PROBE_WORKERS) as pool:
         futures = {pool.submit(probe_task_scores, task): task for task in tasks}
-        for future in futures:
+        progress = tqdm(
+            as_completed(futures), total=len(futures), desc="probing scores", unit="task"
+        )
+        for future in progress:
             task = futures[future]
             try:
                 probed[task] = future.result()
             except Exception as e:  # one broken task shouldn't kill discovery
                 probed[task] = (f"probe_failed: {e}", {})
+            progress.write(f"  {task}: {probed[task][0]}")
 
     outcomes, value_samples = [], []
     for task in tasks:
         outcome, top = probed[task]
         outcomes.append(outcome)
         value_samples.append(json.dumps(top))
-        print(f"  {task}: {outcome}")
 
     tasks_df["outcome_type"] = outcomes
     tasks_df["score_values_sampled"] = value_samples
