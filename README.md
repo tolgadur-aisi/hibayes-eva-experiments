@@ -39,6 +39,10 @@ uv run python -m modeling.extract
 
 # 2. fit + check + plot, all from the config
 uv run hibayes-full --config modeling/config.yaml --out modeling/.output --no-tui
+
+# optional: eyeball the raw trials (one dot per trial, no aggregation) —
+# uses the trial-level snapshot the process stage saves before aggregating
+uv run python -m modeling.plot_raw
 ```
 
 Discovery results land in `modeling/discovery/outputs/` (`evals_inventory.csv`,

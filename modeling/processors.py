@@ -7,6 +7,7 @@ with task_name, model, solver, solver_args, task_args and score_* columns.
 """
 
 import json
+from pathlib import Path
 
 import jax.numpy as jnp
 import pandas as pd
@@ -200,6 +201,31 @@ def add_benchmark_item() -> DataProcessor:
             display.logger.info(
                 f"add_benchmark_item: {df['benchmark_item'].nunique()} items "
                 f"in {df['benchmark'].nunique()} benchmarks"
+            )
+        return state
+
+    return processor
+
+
+@process
+def snapshot_trials(path: str = "modeling/.output/trials.parquet") -> DataProcessor:
+    """Save the trial-level processed data to parquet before aggregation.
+
+    Place this immediately before groupby in the config: the snapshot then
+    holds one row per individual trial with score, model, scaffold, benchmark
+    and benchmark_item -- exactly what raw-data plots (modeling/plot_raw.py)
+    need, and what the aggregated processed_data.parquet no longer contains.
+    """
+
+    def processor(
+        state: AnalysisState, display: ModellingDisplay | None = None
+    ) -> AnalysisState:
+        out = Path(path)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        state.processed_data.to_parquet(out, index=False)
+        if display:
+            display.logger.info(
+                f"snapshot_trials: {len(state.processed_data)} trial rows -> {out}"
             )
         return state
 

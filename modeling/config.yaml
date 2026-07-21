@@ -44,6 +44,10 @@ data_process:
     # her step 2: keep only rows with every modeled variable present
     - drop_rows_with_missing_features:
         feature_names: [model, scaffold, benchmark, benchmark_item, score]
+    # trial-level snapshot for raw-data plots (modeling/plot_raw.py) --
+    # after this point trials are aggregated away
+    - snapshot_trials:
+        path: modeling/.output/trials.parquet
     # aggregate attempts to binomial counts per design cell
     - groupby:
         groupby_columns: [model, scaffold, benchmark, benchmark_item]
