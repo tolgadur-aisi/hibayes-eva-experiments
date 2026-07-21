@@ -102,8 +102,23 @@ check:
 
 communicate:
   communicators:
+    # one forest plot per variable group: on real data the combined plot has
+    # 250+ rows, and a single bad var can kill the whole figure save --
+    # splitting isolates failures and keeps each plot readable
     - forest_plot:
-        vars: [model_effects, scaffold_effects, token_given_effects,
-               benchmark_token_given_effects, benchmark_effects, benchmark_item_sigma]
+        vars: [model_effects]
         vertical_line: 0
+        figsize: [11, 16]
+    - forest_plot:
+        vars: [scaffold_effects]
+        vertical_line: 0
+        figsize: [11, 34]
+    - forest_plot:
+        vars: [token_given_effects, benchmark_effects, benchmark_item_sigma]
+        vertical_line: 0
+        figsize: [11, 6]
+    - forest_plot:
+        vars: [benchmark_token_given_effects]
+        vertical_line: 0
+        figsize: [11, 9]
     - summary_table
