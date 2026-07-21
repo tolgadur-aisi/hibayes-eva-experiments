@@ -1,0 +1,85 @@
+{
+  "model": {
+    "openai/o1-2024-12-17": 45,
+    "anthropic/claude-3-5-sonnet-20241022": 25,
+    "anthropic/claude-3-7-sonnet-20250219": 20,
+    "openai/gpt-5.2-codex": 16,
+    "openai/o3-2025-04-16": 13,
+    "anthropic/claude-sonnet-4-20250514": 11,
+    "openai/o1-mini-2024-09-12": 10,
+    "openai/gpt-5.3-codex-api-preview": 8,
+    "openai/gpt-4o-2024-11-20": 6,
+    "anthropic/claude-opus-4-1-20250805": 2
+  },
+  "solver": {},
+  "sandbox_type": {
+    "k8s": 54,
+    "docker": 22
+  },
+  "task_version": {
+    "0": 167
+  },
+  "message_limit": {
+    "30.0": 43
+  },
+  "token_limit": {
+    "50000000.0": 24,
+    "10000.0": 1
+  },
+  "time_limit": {
+    "3600.0": 14,
+    "14400.0": 6,
+    "21600.0": 2
+  },
+  "epochs": {
+    "1": 94,
+    "15": 26,
+    "5": 24,
+    "10": 23
+  },
+  "epochs_reducer": {
+    "[\"mean\"]": 86
+  },
+  "task_args.base_task": {
+    "{\"type\": \"task\", \"name\": \"inspect_evals/mmlu_5_shot\", \"params\": {}}": 15
+  },
+  "task_args.eval_names": {
+    "[\"avatar\"]": 6,
+    "[\"back_to_the_past\"]": 1
+  },
+  "task_args.prompt_name": {
+    "REFUSAL_1": 7
+  },
+  "task_args.sample_idx": {
+    "0.0": 43
+  },
+  "task_args.sandbox_type": {
+    "docker": 9
+  },
+  "task_args.solver": {
+    "{\"type\": \"solver\", \"name\": \"agents/autonomous_systems_agent\", \"params\": {\"tools\": [{\"type\": \"tool\", \"name\": \"agents/bash\", \"params\": {\"timeout_seconds\": 600}}, {\"type\": \"tool\", \"name\": \"agents/submit_answer\", \"params\": {}}, {\"type\": \"tool\", \"name\": \"python\", \"params\": {\"timeout\": 600}}, {\"type\": \"tool\", \"name\": \"agents/open_file\", \"params\": {}}, {\"type\": \"tool\", \"name\": \"agents/edit_file\", \"params\": {}}, {\"type\": \"tool\", \"name\": \"agents/search_dir\", \"params\": {}}], \"max_tokens\": 2500000}}": 39,
+    "{\"type\": \"solver\", \"name\": \"agents/autonomous_systems_agent\", \"params\": {\"tools\": [{\"type\": \"tool\", \"name\": \"agents/bash\", \"params\": {\"timeout_seconds\": 600}}, {\"type\": \"tool\", \"name\": \"agents/submit_answer\", \"params\": {}}, {\"type\": \"tool\", \"name\": \"agents/ipython\", \"params\": {\"timeout\": 600}}, {\"type\": \"tool\", \"name\": \"agents/open_file\", \"params\": {}}, {\"type\": \"tool\", \"name\": \"agents/edit_file\", \"params\": {}}, {\"type\": \"tool\", \"name\": \"agents/search_dir\", \"params\": {}}], \"max_tokens\": 2500000}}": 6,
+    "{\"type\": \"solver\", \"name\": \"agents/autonomous_systems_agent\", \"params\": {\"tools\": [{\"type\": \"tool\", \"name\": \"agents/bash\", \"params\": {\"timeout_seconds\": 600}}, {\"type\": \"tool\", \"name\": \"agents/submit_answer\", \"params\": {}}, {\"type\": \"tool\", \"name\": \"agents/ipython\", \"params\": {\"timeout\": 600}}, {\"type\": \"tool\", \"name\": \"agents/open_file\", \"params\": {}}, {\"type\": \"tool\", \"name\": \"agents/edit_file\", \"params\": {}}, {\"type\": \"tool\", \"name\": \"agents/search_dir\", \"params\": {}}, {\"type\": \"tool\", \"name\": \"web_browser_go\", \"params\": {}}, {\"type\": \"tool\", \"name\": \"web_browser_click\", \"params\": {}}, {\"type\": \"tool\", \"name\": \"web_browser_type_submit\", \"params\": {}}, {\"type\": \"tool\", \"name\": \"web_browser_type\", \"params\": {}}, {\"type\": \"tool\", \"name\": \"web_browser_scroll\", \"params\": {}}, {\"type\": \"tool\", \"name\": \"web_browser_back\", \"params\": {}}, {\"type\": \"tool\", \"name\": \"web_browser_forward\", \"params\": {}}, {\"type\": \"tool\", \"name\": \"web_browser_refresh\", \"params\": {}}], \"max_tokens\": 2500000}}": 6,
+    "{\"type\": \"solver\", \"name\": \"basic_agent\", \"params\": {\"tools\": [{\"type\": \"tool\", \"name\": \"agents/bash\", \"params\": {\"timeout_seconds\": 600}}, {\"type\": \"tool\", \"name\": \"agents/submit_answer\", \"params\": {}}, {\"type\": \"tool\", \"name\": \"python\", \"params\": {\"timeout\": 600}}, {\"type\": \"tool\", \"name\": \"agents/open_file\", \"params\": {}}, {\"type\": \"tool\", \"name\": \"agents/edit_file\", \"params\": {}}, {\"type\": \"tool\", \"name\": \"agents/search_dir\", \"params\": {}}], \"kwargs\": {\"max_tokens\": 2500000}}}": 4
+  },
+  "task_args.strategies": {
+    "[\"refuse\", \"unmonitored\"]": 3,
+    "[\"refuse\", \"sandbag\", \"monitored\"]": 2,
+    "[\"refuse\"]": 1,
+    "[\"refuse\", \"aware\"]": 1,
+    "[\"refuse\", \"sandbag\"]": 1
+  },
+  "task_args.variant_names": {
+    "[\"solution\"]": 6,
+    "hard": 2,
+    "[\"hard\"]": 1
+  },
+  "model_generate_config.max_connections": {
+    "50.0": 63,
+    "200.0": 15,
+    "60.0": 8
+  },
+  "model_generate_config.reasoning_effort": {
+    "xhigh": 24
+  }
+}
