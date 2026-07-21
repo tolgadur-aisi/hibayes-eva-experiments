@@ -36,10 +36,14 @@ data_process:
           swe_bench: score_swe_bench_scorer
     # scaffold = solver + solver_args + task_args (minus data-selection keys).
     # cybench's variants change the challenge prompts, so they are item
-    # identity, not scaffold; excluded here and reflected in task_version/item ids.
+    # identity, not scaffold; excluded here and reflected in task_version/item
+    # ids. token/message budgets are modeled separately (token_given), so they
+    # are excluded too -- otherwise scaffold levels and budgets are collinear.
     - derive_scaffold:
-        exclude_task_args: [variants, sample_ids, samples]
+        exclude_task_args: [variants, sample_ids, samples, token_limit, message_limit]
         include_solver_args: true
+    # token budget the run was GIVEN (eva token_limit; "none" = unlimited)
+    - add_token_given
     - add_benchmark_item
     # her step 2: keep only rows with every modeled variable present
     - drop_rows_with_missing_features:
@@ -50,15 +54,18 @@ data_process:
         path: modeling/.output/trials.parquet
     # aggregate attempts to binomial counts per design cell
     - groupby:
-        groupby_columns: [model, scaffold, benchmark, benchmark_item]
+        groupby_columns: [model, scaffold, token_given, benchmark, benchmark_item]
     - extract_observed_feature:
         feature_name: n_correct
     - extract_features:
         continuous_features: [n_total]
-        categorical_features: [model, scaffold, benchmark, benchmark_item]
+        categorical_features: [model, scaffold, token_given, benchmark, benchmark_item]
         effect_coding_for_main_effects: true
     # item -> benchmark map that gives the model its nesting structure
     - extract_item_benchmark_index
+    # arviz labels for the interaction posterior
+    - add_interaction_dims:
+        pairs: [[benchmark, token_given]]
 
 model:
   path: modeling/custom_model.py
@@ -66,10 +73,13 @@ model:
     - name: item_nested_binomial
       config:
         tag: unified_v1
-        main_effects: [model, scaffold]
+        main_effects: [model, scaffold, token_given]
+        # different budgets may matter differently per benchmark
+        interactions: [[benchmark, token_given]]
         item_effect: benchmark_item
         nest_within: benchmark
         prior_main_effects_scale: 1.0
+        prior_interaction_scale: 0.5
         prior_nest_effects_scale: 2.0
         prior_item_sigma_scale: 2.0
         fit:
@@ -93,6 +103,7 @@ check:
 communicate:
   communicators:
     - forest_plot:
-        vars: [model_effects, scaffold_effects, benchmark_effects, benchmark_item_sigma]
+        vars: [model_effects, scaffold_effects, token_given_effects,
+               benchmark_token_given_effects, benchmark_effects, benchmark_item_sigma]
         vertical_line: 0
     - summary_table

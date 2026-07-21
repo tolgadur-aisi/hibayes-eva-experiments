@@ -3,8 +3,11 @@
 One question, one config, one model: **how well do models perform across
 benchmarks, and how much of that depends on their scaffold?**
 
-    logit P(pass) = model + scaffold + benchmark_item
-    (item effects nested within benchmark)
+    logit P(pass) = model + scaffold + token_given
+                    + benchmark × token_given + benchmark_item
+    (item effects nested within benchmark; token_given is the token budget a
+    run was granted — "none" when unlimited — with a per-benchmark interaction,
+    since a budget can bind differently per benchmark)
 
 Fitted as a hierarchical binomial GLM with [hibayes](https://github.com/UKGovernmentBEIS/hibayes)'
 config-driven pipeline, on pass/fail benchmark data from the

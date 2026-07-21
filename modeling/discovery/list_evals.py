@@ -17,12 +17,18 @@ Outputs (committed so the selection is reviewable):
 
 import json
 from collections import Counter
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
 import pandas as pd
 from eva import query, samples
 
 OUT_DIR = Path(__file__).resolve().parent / "outputs"
+
+# eva caches ONE psycopg connection per process, so parallel queries need
+# separate processes, not threads. Keep the pool modest -- each worker holds
+# its own Aurora connection.
+PROBE_WORKERS = 8
 
 TEAM = "team_ru"
 
@@ -103,12 +109,20 @@ def main() -> None:
     tasks_df = query(TASKS_SQL, statement_timeout_ms=240_000)
     print(f"{len(tasks_df)} {TEAM} tasks")
 
+    tasks = list(tasks_df["task_name"])
+    probed: dict[str, tuple[str, dict]] = {}
+    with ProcessPoolExecutor(max_workers=PROBE_WORKERS) as pool:
+        futures = {pool.submit(probe_task_scores, task): task for task in tasks}
+        for future in futures:
+            task = futures[future]
+            try:
+                probed[task] = future.result()
+            except Exception as e:  # one broken task shouldn't kill discovery
+                probed[task] = (f"probe_failed: {e}", {})
+
     outcomes, value_samples = [], []
-    for task in tasks_df["task_name"]:
-        try:
-            outcome, top = probe_task_scores(task)
-        except Exception as e:  # keep going; one broken task shouldn't kill discovery
-            outcome, top = f"probe_failed: {e}", {}
+    for task in tasks:
+        outcome, top = probed[task]
         outcomes.append(outcome)
         value_samples.append(json.dumps(top))
         print(f"  {task}: {outcome}")

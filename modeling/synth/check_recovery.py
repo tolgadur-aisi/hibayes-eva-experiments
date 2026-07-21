@@ -36,6 +36,38 @@ def hdi_bounds(idata: az.InferenceData, var: str) -> tuple[np.ndarray, np.ndarra
     return hdi[..., 0].ravel(), hdi[..., 1].ravel()
 
 
+def check_matrix(
+    idata: az.InferenceData,
+    var: str,
+    row_coord: str,
+    col_coord: str,
+    truth_by_row_col: dict,
+) -> list[dict]:
+    """Check a 2D effect matrix (e.g. benchmark x token_given) cell by cell."""
+    post = idata.posterior[var]
+    row_names = [str(n) for n in post[row_coord].values]
+    col_names = [str(n) for n in post[col_coord].values]
+    means = post.mean(dim=("chain", "draw")).values  # (n_rows, n_cols)
+    lo, hi = hdi_bounds(idata, var)
+    lo = lo.reshape(means.shape)
+    hi = hi.reshape(means.shape)
+    rows = []
+    for i, rname in enumerate(row_names):
+        for j, cname in enumerate(col_names):
+            true = truth_by_row_col[rname][cname]
+            rows.append(
+                {
+                    "param": f"{var}[{rname},{cname}]",
+                    "truth": true,
+                    "mean": float(means[i, j]),
+                    "hdi_low": float(lo[i, j]),
+                    "hdi_high": float(hi[i, j]),
+                    "covered": bool(lo[i, j] <= true <= hi[i, j]),
+                }
+            )
+    return rows
+
+
 def check_vector(
     idata: az.InferenceData, var: str, coord: str, truth_by_name: dict
 ) -> list[dict]:
@@ -86,6 +118,16 @@ def main() -> int:
     rows += check_vector(idata, "model_effects", "model", truth["model_effects"])
     rows += check_vector(idata, "scaffold_effects", "scaffold", truth["scaffold_effects"])
     rows += check_vector(idata, "benchmark_effects", "benchmark", truth["benchmark_effects"])
+    rows += check_vector(
+        idata, "token_given_effects", "token_given", truth["token_given_effects"]
+    )
+    rows += check_matrix(
+        idata,
+        "benchmark_token_given_effects",
+        "benchmark",
+        "token_given",
+        truth["benchmark_token_given_effects"],
+    )
     rows += check_vector(
         idata, "benchmark_item_sigma", "benchmark", truth["benchmark_item_sigma"]
     )

@@ -46,6 +46,22 @@ BENCHMARKS = {
     "swe_bench": (50, 0.3, 0.8, "score_swe_bench_scorer", False),
 }
 
+# Token budgets the runs were GIVEN (None = unlimited -> level "none").
+# Main effects sum to zero; the benchmark x token interaction matrix has
+# rows and columns summing to zero, matching the model's coding.
+TOKEN_BUDGETS = {
+    200_000: -0.35,
+    1_000_000: 0.05,
+    None: 0.30,
+}
+TOKEN_LEVEL = {200_000: "200000", 1_000_000: "1000000", None: "none"}
+BENCH_TOKEN_INTERACTION = {
+    #                 200k   1M    none
+    "cybench":            [0.20, -0.05, -0.15],
+    "gdm_intercode_ctf":  [-0.25, 0.10, 0.15],
+    "swe_bench":          [0.05, -0.05, 0.00],
+}
+
 EPOCHS = 6
 P_PARTIAL = 0.005  # sprinkle partial credit to exercise the drop logic
 P_MISSING = 0.005
@@ -77,6 +93,13 @@ def generate(seed: int = 0) -> dict:
         },
         "benchmark_effects": {b: spec[1] for b, spec in BENCHMARKS.items()},
         "benchmark_item_sigma": {b: spec[2] for b, spec in BENCHMARKS.items()},
+        "token_given_effects": {
+            TOKEN_LEVEL[budget]: eff for budget, eff in TOKEN_BUDGETS.items()
+        },
+        "benchmark_token_given_effects": {
+            bench: dict(zip([TOKEN_LEVEL[b] for b in TOKEN_BUDGETS], row))
+            for bench, row in BENCH_TOKEN_INTERACTION.items()
+        },
         "item_deviations": {},
     }
 
@@ -92,37 +115,40 @@ def generate(seed: int = 0) -> dict:
         rows = []
         for model, m_eff in MODELS.items():
             for solver, task_args, solver_args, s_eff in SCAFFOLD_SPECS:
-                eta = INTERCEPT + m_eff + s_eff + bench_eff + item_dev
-                p = 1.0 / (1.0 + np.exp(-eta))
-                for epoch in range(1, EPOCHS + 1):
-                    outcome = rng.random(n_items) < p
-                    for item, ok in zip(items, outcome):
-                        u = rng.random()
-                        if letters:
-                            score = "C" if ok else "I"
-                            if u < P_PARTIAL:
-                                score = "P"
-                            elif u < P_PARTIAL + P_MISSING:
-                                score = None
-                        else:
-                            score = 1.0 if ok else 0.0
-                            if u < P_MISSING:
-                                score = None
-                        rows.append(
-                            {
-                                "task_name": benchmark,
-                                "model": model,
-                                "solver": solver,
-                                "task_args": json.dumps(task_args),
-                                "solver_args": json.dumps(solver_args),
-                                "model_generate_config": None,
-                                "sandbox_type": "docker",
-                                "message_limit": 50,
-                                "item_id": item,
-                                "epoch": epoch,
-                                score_col: score,
-                            }
-                        )
+                for t_idx, (budget, t_eff) in enumerate(TOKEN_BUDGETS.items()):
+                    bt_eff = BENCH_TOKEN_INTERACTION[benchmark][t_idx]
+                    eta = INTERCEPT + m_eff + s_eff + t_eff + bt_eff + bench_eff + item_dev
+                    p = 1.0 / (1.0 + np.exp(-eta))
+                    for epoch in range(1, EPOCHS + 1):
+                        outcome = rng.random(n_items) < p
+                        for item, ok in zip(items, outcome):
+                            u = rng.random()
+                            if letters:
+                                score = "C" if ok else "I"
+                                if u < P_PARTIAL:
+                                    score = "P"
+                                elif u < P_PARTIAL + P_MISSING:
+                                    score = None
+                            else:
+                                score = 1.0 if ok else 0.0
+                                if u < P_MISSING:
+                                    score = None
+                            rows.append(
+                                {
+                                    "task_name": benchmark,
+                                    "model": model,
+                                    "solver": solver,
+                                    "task_args": json.dumps(task_args),
+                                    "solver_args": json.dumps(solver_args),
+                                    "model_generate_config": None,
+                                    "sandbox_type": "docker",
+                                    "message_limit": 50,
+                                    "token_limit": budget,
+                                    "item_id": item,
+                                    "epoch": epoch,
+                                    score_col: score,
+                                }
+                            )
         df = pd.DataFrame(rows)
         df.to_parquet(DATA_DIR / f"{benchmark}.samples.parquet", index=False)
         print(f"[synth] {benchmark}: {len(df)} rows -> {DATA_DIR / f'{benchmark}.samples.parquet'}")

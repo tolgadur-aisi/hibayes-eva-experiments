@@ -208,6 +208,63 @@ def add_benchmark_item() -> DataProcessor:
 
 
 @process
+def add_token_given(column: str = "token_limit") -> DataProcessor:
+    """Add a categorical `token_given` column from the eval-level token budget.
+
+    This is the budget the run was *given* (eva's token_limit), not tokens
+    used. Budgets take a handful of discrete values in practice, so we treat
+    them as categorical; a null budget means "no limit", which is a real
+    experimental condition -- it becomes the level "none", not a missing value.
+    """
+
+    def processor(
+        state: AnalysisState, display: ModellingDisplay | None = None
+    ) -> AnalysisState:
+        df = state.processed_data
+        if column not in df.columns:
+            raise ValueError(
+                f"add_token_given: column {column!r} not in data -- re-extract "
+                f"with a version of modeling/extract.py that pulls it."
+            )
+        df["token_given"] = df[column].map(
+            lambda v: "none" if v is None or pd.isna(v) else str(int(v))
+        )
+        if display:
+            display.logger.info(
+                f"add_token_given: levels {df['token_given'].value_counts().to_dict()}"
+            )
+        return state
+
+    return processor
+
+
+@process
+def add_interaction_dims(pairs: list[list[str]] | None = None) -> DataProcessor:
+    """Register arviz dims for categorical interaction terms.
+
+    For each [a, b] pair, labels the model's `{a}_{b}_effects` matrix with the
+    two categorical coords so posteriors are readable. Must run after
+    extract_features (which creates the coords).
+    """
+    pairs = pairs or []
+
+    def processor(
+        state: AnalysisState, display: ModellingDisplay | None = None
+    ) -> AnalysisState:
+        for a, b in pairs:
+            missing = [c for c in (a, b) if c not in (state.coords or {})]
+            if missing:
+                raise ValueError(
+                    f"add_interaction_dims: no coords for {missing}; run after "
+                    f"extract_features with these as categorical features."
+                )
+            state.dims[f"{a}_{b}_effects"] = [a, b]
+        return state
+
+    return processor
+
+
+@process
 def snapshot_trials(path: str = "modeling/.output/trials.parquet") -> DataProcessor:
     """Save the trial-level processed data to parquet before aggregation.
 

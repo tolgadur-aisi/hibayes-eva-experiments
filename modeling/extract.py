@@ -24,6 +24,8 @@ needed when the config changes.
 
 import argparse
 import json
+from collections import defaultdict
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import date
 from pathlib import Path
 
@@ -51,7 +53,7 @@ SELECT e.task_name, e.model, e.internal_id AS run_internal_id, e.created,
        e.task_args::text AS task_args,
        e.solver, e.solver_args::text AS solver_args,
        e.model_generate_config::text AS model_generate_config,
-       e.sandbox_type, e.message_limit,
+       e.sandbox_type, e.message_limit, e.token_limit, e.time_limit,
        s.id AS item_id, s.epoch, s.scores,
        s.total_tokens, s.total_time, s.message_count, s.error, s._limit, s.retries
 FROM inspect.samples s
@@ -64,7 +66,8 @@ EVAL_SQL = f"""
 SELECT e.internal_id, e.eval_id, e.run_id, e.task_name, e.task_version,
        e.task_args::text AS task_args, e.solver, e.solver_args::text AS solver_args,
        e.model, e.model_generate_config::text AS model_generate_config,
-       e.sandbox_type, e.message_limit, e.created, e.epochs,
+       e.sandbox_type, e.message_limit, e.token_limit, e.time_limit,
+       e.created, e.epochs,
        e.dataset_samples, e.total_samples, e.completed_samples,
        e.score_headline_name, e.score_headline_metric,
        e.score_headline_value, e.score_headline_stderr
@@ -86,28 +89,55 @@ def quarters(start: date, end: date) -> list[tuple[str, str]]:
     return list(zip(edges[:-1], edges[1:]))
 
 
-def extract_samples(task: str) -> None:
-    out = DATA_DIR / f"{task}.samples.parquet"
-    if out.exists():
-        print(f"[skip] {out.name} exists")
+# eva caches ONE psycopg connection per process, so parallel pulls need
+# separate processes, not threads. Each worker holds its own Aurora connection.
+PULL_WORKERS = 8
+
+
+def pull_quarter(task: str, lo: str, hi: str) -> pd.DataFrame:
+    """One (task, quarter) chunk -- runs in a worker process."""
+    return samples(
+        SAMPLE_SQL,
+        params={"task": task, "lo": lo, "hi": hi},
+        statement_timeout_ms=240_000,
+    )
+
+
+def extract_samples(tasks: list[str]) -> None:
+    """Pull all (task, quarter) chunks in parallel, write one parquet per task."""
+    todo = []
+    for task in tasks:
+        if (DATA_DIR / f"{task}.samples.parquet").exists():
+            print(f"[skip] {task}.samples.parquet exists")
+        else:
+            todo.append(task)
+    if not todo:
         return
-    chunks = []
-    for lo, hi in quarters(date(2024, 10, 1), date(2026, 8, 1)):
-        df = samples(
-            SAMPLE_SQL,
-            params={"task": task, "lo": lo, "hi": hi},
-            statement_timeout_ms=240_000,
-        )
-        if len(df):
-            chunks.append(df)
-        print(f"  {task} {lo}..{hi}: {len(df)} rows")
-    if not chunks:
-        print(f"[warn] {task}: no rows at all")
-        return
-    df = pd.concat(chunks, ignore_index=True)
-    # eva.samples() expands the scores JSONB into score_* columns; keep everything.
-    df.to_parquet(out, index=False)
-    print(f"[done] {out.name}: {len(df)} rows, cols={list(df.columns)}")
+
+    window = quarters(date(2024, 10, 1), date(2026, 8, 1))
+    chunks: dict[str, list[pd.DataFrame]] = defaultdict(list)
+    with ProcessPoolExecutor(max_workers=PULL_WORKERS) as pool:
+        futures = {
+            pool.submit(pull_quarter, task, lo, hi): (task, lo, hi)
+            for task in todo
+            for lo, hi in window
+        }
+        for future in as_completed(futures):
+            task, lo, hi = futures[future]
+            df = future.result()
+            if len(df):
+                chunks[task].append(df)
+            print(f"  {task} {lo}..{hi}: {len(df)} rows")
+
+    for task in todo:
+        if not chunks[task]:
+            print(f"[warn] {task}: no rows at all")
+            continue
+        out = DATA_DIR / f"{task}.samples.parquet"
+        df = pd.concat(chunks[task], ignore_index=True)
+        # eva.samples() expands the scores JSONB into score_* columns; keep everything.
+        df.to_parquet(out, index=False)
+        print(f"[done] {out.name}: {len(df)} rows, cols={list(df.columns)}")
 
 
 def configured_benchmarks() -> set[str]:
@@ -173,8 +203,7 @@ def main() -> None:
     print(evals_df.groupby("task_name").size().to_string())
 
     print("\n=== sample-level extracts ===")
-    for task in tasks:
-        extract_samples(task)
+    extract_samples(tasks)
 
     manifest = {
         "extracted_at": pd.Timestamp.now(tz="UTC").isoformat(),

@@ -37,8 +37,8 @@ EVALS_SQL = f"""
 SELECT e.task_name, e.model, e.solver, e.solver_args::text AS solver_args,
        e.task_args::text AS task_args,
        e.model_generate_config::text AS model_generate_config,
-       e.sandbox_type, e.message_limit, e.epochs, e.epochs_reducer,
-       e.task_version
+       e.sandbox_type, e.message_limit, e.token_limit, e.time_limit,
+       e.epochs, e.epochs_reducer, e.task_version
 FROM inspect.evals e
 WHERE {BASE_FILTERS} {{task_filter}}
 """
@@ -50,6 +50,8 @@ PLAIN_VARIABLES = [
     ("sandbox_type", "categorical"),
     ("task_version", "categorical"),
     ("message_limit", "continuous"),
+    ("token_limit", "continuous"),
+    ("time_limit", "continuous"),
     ("epochs", "continuous"),
     ("epochs_reducer", "categorical"),
 ]

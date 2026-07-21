@@ -9,6 +9,10 @@ benchmark_item, with benchmark_item inheriting from benchmark. Concretely:
                     + benchmark_effect[b(item)]    (sum-to-zero)
                     + item_deviation[item],  item_deviation ~ N(0, sigma[b(item)])
 
+plus any config-declared main effects (e.g. token_given, the token budget a
+run was granted) and categorical interactions (e.g. benchmark x token_given),
+all effect-coded sum-to-zero.
+
     n_correct ~ Binomial(n_total, logit P(pass))
 
 Each benchmark gets its own mean difficulty and its own item-difficulty spread
@@ -28,15 +32,42 @@ from hibayes.process import Features
 from numpyro import distributions as dist
 
 
+def _interaction_effects(
+    name1: str, name2: str, features: Features, prior: dist.Distribution
+) -> jnp.ndarray:
+    """Effect-coded interaction matrix: rows and columns each sum to zero.
+
+    Same construction as syco-at-t's _create_interaction_effects: sample the
+    (n1-1)x(n2-1) free block, complete the last row/column from the
+    constraints.
+    """
+    n1 = features[f"num_{name1}"]
+    n2 = features[f"num_{name2}"]
+    if n1 == 1 or n2 == 1:
+        return jnp.zeros((n1, n2))
+
+    raw = numpyro.sample(
+        f"{name1}_{name2}_effects_constrained", prior.expand([(n1 - 1) * (n2 - 1)])
+    ).reshape((n1 - 1, n2 - 1))
+    b_full = jnp.zeros((n1, n2))
+    b_full = b_full.at[: n1 - 1, : n2 - 1].set(raw)
+    b_full = b_full.at[n1 - 1, : n2 - 1].set(-jnp.sum(raw, axis=0))
+    b_full = b_full.at[:, n2 - 1].set(-jnp.sum(b_full[:, : n2 - 1], axis=1))
+    numpyro.deterministic(f"{name1}_{name2}_effects", b_full)
+    return b_full
+
+
 @model
 def item_nested_binomial(
     main_effects: Optional[List[str]] = None,
+    interactions: Optional[List[List[str]]] = None,
     item_effect: str = "benchmark_item",
     nest_within: str = "benchmark",
     prior_intercept_loc: float = 0.0,
     prior_intercept_scale: float = 1.5,
     prior_main_effects_loc: float = 0.0,
     prior_main_effects_scale: float = 1.0,
+    prior_interaction_scale: float = 0.5,
     prior_nest_effects_scale: float = 2.0,
     prior_item_sigma_scale: float = 2.0,
 ) -> Model:
@@ -46,6 +77,9 @@ def item_nested_binomial(
         main_effects: Categorical fixed effects (sum-to-zero coded), e.g.
             ["model", "scaffold"]. Each needs {name}_index / num_{name} features
             from extract_features with effect_coding_for_main_effects=True.
+        interactions: Pairs of categorical features, e.g.
+            [["benchmark", "token_given"]]. Each pair gets a doubly
+            sum-to-zero effect matrix (rows and columns sum to zero).
         item_effect: Categorical feature holding the item identity.
         nest_within: Categorical feature the item effects are nested inside.
             Requires the item_benchmark_index feature from the
@@ -62,10 +96,12 @@ def item_nested_binomial(
             spreads of 2-3 logits, hence the generous default.
     """
     main_effects = list(main_effects or [])
+    interactions = [tuple(pair) for pair in (interactions or [])]
 
     def _model(features: Features) -> None:
         required = ["obs", "n_total", "item_benchmark_index"]
-        for effect in main_effects + [item_effect, nest_within]:
+        interacting = [name for pair in interactions for name in pair]
+        for effect in main_effects + interacting + [item_effect, nest_within]:
             required.extend([f"{effect}_index", f"num_{effect}"])
         check_features(features, required)
 
@@ -88,6 +124,12 @@ def item_nested_binomial(
                 coefs = jnp.zeros(n_levels)
             numpyro.deterministic(f"{effect}_effects", coefs)
             eta = eta + coefs[idx]
+
+        # Interaction effects, doubly sum-to-zero
+        prior_interaction = dist.Normal(0.0, prior_interaction_scale)
+        for name1, name2 in interactions:
+            b_full = _interaction_effects(name1, name2, features, prior_interaction)
+            eta = eta + b_full[features[f"{name1}_index"], features[f"{name2}_index"]]
 
         # Nesting variable mean effects (benchmark difficulty), sum-to-zero
         n_nests = features[f"num_{nest_within}"]
