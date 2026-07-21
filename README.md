@@ -109,6 +109,46 @@ decision tables.
   history up to commit `1362644` — including their `FINDINGS.md` — and
   informed this model's priors and its run-effect caveats.
 
+## Results — first real fit (2026-07-21 snapshot, `unified_v1`)
+
+Fit on 166,511 trials across 3 benchmarks (cybench, gdm_intercode_ctf,
+swe_bench), 57 models, 160 derived scaffolds, 10 token-budget levels, 274
+items. Sampler quality was excellent (r̂ ≈ 1.00 everywhere, min ESS ≈ 3,700,
+zero divergences), so the numbers below are what the model believes — the
+caveats are about *identification*, not convergence.
+
+**Scaffold matters at least as much as model.** Scaffold effects span
+−5.5 to +5.2 logits (63 of 160 exclude zero), wider than the full 57-model
+spread of −2.5 (a uk-dsit gpt-4o fine-tune) to +4.2 (kimi-k3). Read the
+ranking direction, not individual values: 139/160 scaffolds appear with only
+one model, so many "scaffold" effects partially absorb model identity (and
+vice versa — kimi-k3's +4.2 rides on thin crossing).
+
+**The confound is visible in plain sight:** `openai/o1` (early bespoke-harness
+runs) lands at −1.75 while `o1-2024-12-17` — the same model under later
+configs — lands at +1.39. Three logits between two labels for one model is
+the model↔scaffold entanglement this analysis exists to separate; it needs
+model-name normalisation plus denser crossing to resolve.
+
+**Item difficulty dwarfs everything.** Within-benchmark item spread is
+σ ≈ 3.2 (intercode), 3.7 (swe_bench), 5.6 (cybench) — several times the
+model spread. Which items a run faces matters more than which model runs it.
+Benchmark means: cybench −2.9 logits (much harder than intercode/swe_bench
+at +1.5).
+
+**Token budgets: no clean effect.** Only the 10M budget separates from zero
+(+1.1 [0.1, 2.1]); point estimates rise with budget, but "none" (no limit
+set) sits lowest at −1.0 — evidence that `token_given="none"` is a cohort of
+older/different runs, not an experimental "unlimited" arm. No
+benchmark × token interaction cell excludes zero.
+
+Iteration queue implied by these results, in order of value: (1) restrict
+scaffold to a `scaffold_keys` allowlist to collapse the 160 fragmented
+levels; (2) normalise model names (fine-tune checkpoints and provider
+prefixes currently count as separate models); (3) add a run-level effect for
+overdispersion; (4) drop or re-derive `token_given` unless a budget-varied
+cohort exists.
+
 ## Known limitations (v1)
 
 - **No run effect.** Same-config reruns drift by ~1 logit on some

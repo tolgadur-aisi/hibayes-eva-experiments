@@ -41,12 +41,17 @@ def jitter_strip(
     y = df["score"].to_numpy(dtype=float) + rng.uniform(-JITTER_Y, JITTER_Y, size=len(df))
 
     ax.scatter(x, y, s=4, c=DOT_COLOR, alpha=alpha, linewidths=0, rasterized=True)
+    # beyond ~40 levels individual labels are an unreadable smear -- label an
+    # evenly spaced subset and say how many levels there are
+    step = max(1, len(levels) // 40)
+    ticks = range(0, len(levels), step)
     labels = [
-        lvl if len(lvl) <= MAX_LABEL_CHARS else lvl[: MAX_LABEL_CHARS - 1] + "…"
-        for lvl in levels
+        levels[i] if len(levels[i]) <= MAX_LABEL_CHARS else levels[i][: MAX_LABEL_CHARS - 1] + "…"
+        for i in ticks
     ]
-    ax.set_xticks(range(len(levels)), labels, rotation=45, ha="right", fontsize=7, color=INK)
-    ax.set_xlabel(column, color=INK)
+    ax.set_xticks(list(ticks), labels, rotation=45, ha="right", fontsize=6, color=INK)
+    n_label = f"{column} ({len(levels)} levels)" if len(levels) > 40 else column
+    ax.set_xlabel(n_label, color=INK)
     ax.set_yticks([0, 1], ["0 (fail)", "1 (pass)"], color=INK)
     ax.set_ylim(-0.25, 1.25)
     ax.grid(axis="y", color="#e3e5e8", linewidth=0.8)
