@@ -58,9 +58,14 @@ varied budgets on purpose, so the data can't really answer this question.
 
 ## How much should you trust this?
 
-The machinery itself ran cleanly — the standard convergence checks all passed,
-which means these numbers are what the model genuinely concluded from the
-data, not a computation glitch. The real limits are in the data, not the math:
+The machinery mostly ran cleanly. The headline quantities — every model,
+scaffold, and budget effect — passed the standard convergence checks. The
+checks did flag two things: the per-item bookkeeping numbers for ~150 of the
+274 items were estimated a bit roughly (fixable by letting the sampler run
+longer; it doesn't move the headline conclusions), and a model-fit check
+confirmed what we already knew — about 3% of the data behaves more variably
+than the current model expects, the too-confident-intervals issue below. The
+real limits are in the data:
 
 - scaffolds tangled with models (point 3),
 - repeated runs of identical setups drift more than coin-flip noise allows,

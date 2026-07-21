@@ -113,9 +113,16 @@ decision tables.
 
 Fit on 166,511 trials across 3 benchmarks (cybench, gdm_intercode_ctf,
 swe_bench), 57 models, 160 derived scaffolds, 10 token-budget levels, 274
-items. Sampler quality was excellent (r̂ ≈ 1.00 everywhere, min ESS ≈ 3,700,
-zero divergences), so the numbers below are what the model believes — the
-caveats are about *identification*, not convergence.
+items. Sampler quality: all headline effects (model, scaffold, token,
+benchmark, sigmas) converged cleanly (r̂ ≤ 1.01, ESS in the thousands) with
+zero divergences; the formal r̂/ESS checkers flag ~150 of the 1,056
+parameters — all item-level latents (`benchmark_item_z`, r̂ up to 1.02, ESS
+down to ~210) plus intercode's item-sigma at ESS 877 — which warrants more
+draws but does not move the headline posteriors. The LOO checker flags 3.2%
+of cells (Pareto k > 0.7), the expected signature of the missing run effect
+(see limitations). Prior and posterior predictive checks pass: the prior is
+permissive but centred on plausible pass counts, and the posterior
+predictive brackets the observed per-cell counts.
 
 **Scaffold matters at least as much as model.** Scaffold effects span
 −5.5 to +5.2 logits (63 of 160 exclude zero), wider than the full 57-model
