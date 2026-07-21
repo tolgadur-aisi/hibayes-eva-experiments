@@ -1,9 +1,0 @@
-{
-  "model": "crossed_betabinomial",
-  "tag": "cybench_crossed_betabin",
-  "max_r_hat": 1.0082,
-  "min_ess_bulk": 544.0916,
-  "min_ess_tail": 1148.8791,
-  "n_divergences": 0,
-  "n_params": 311
-}

@@ -6,8 +6,18 @@ dependencies = [
     "eva",
     "hibayes",
     "pyarrow>=25.0.0",
+    "tqdm>=4.68.4",
 ]
 
 [tool.uv.sources]
 hibayes = { git = "https://github.com/UKGovernmentBEIS/hibayes.git" }
 eva = { path = "../eva/client", editable = true }
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

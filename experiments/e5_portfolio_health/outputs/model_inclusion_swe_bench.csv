@@ -1,5 +1,0 @@
-model,n,k,included
-openai/o3-mini,7964,2327.0,True
-anthropic/claude-3-5-sonnet-latest,1480,643.0,True
-openai/o1-2024-12-17,385,166.0,True
-anthropic/claude-3-5-sonnet-20240620,12,1.0,False

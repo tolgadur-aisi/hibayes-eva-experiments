@@ -1,9 +1,0 @@
-{
-  "model": "crossed_binomial",
-  "tag": "gdm_intercode_ctf_crossed",
-  "max_r_hat": 1.0366,
-  "min_ess_bulk": 160.9412,
-  "min_ess_tail": 284.3449,
-  "n_divergences": 0,
-  "n_params": 174
-}

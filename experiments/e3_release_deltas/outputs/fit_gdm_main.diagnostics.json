@@ -1,8 +1,0 @@
-{
-  "model": "fixed_model_item_binomialgdm_main",
-  "max_r_hat": 1.0036,
-  "min_ess_bulk": 1459.5685,
-  "min_ess_tail": 2864.8773,
-  "n_divergences": 0,
-  "n_params": 32
-}

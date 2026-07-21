@@ -1,3 +1,0 @@
-model,cybench_easy_acc,cybench_hard_acc,config_shift_pp
-openai/gpt-5,0.8320284697508897,0.53,0.3020284697508897
-openai/o3,0.6332530120481927,0.4675,0.1657530120481927

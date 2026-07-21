@@ -1,210 +1,195 @@
-# hibayes × eva experiments
+# eva × hibayes: how much does scaffold matter?
 
-Five Bayesian analyses of AISI's public team_ru eval data (cybench, gdm_intercode_ctf,
-swe_bench, boolq_preference), run on 2026-07-16 by Claude agents against parquet extracts
-from the eva warehouse, using [hibayes](https://github.com/UKGovernmentBEIS/hibayes) /
-NumPyro. Each experiment was independently checked by a skeptical-reviewer agent and
-iterated until approved.
+One question, one config, one model: **how well do models perform across
+benchmarks, and how much of that depends on their scaffold?**
 
-> **Note:** the outlines below are **Claude's interpretation** of the experiments, written
-> as a narrative summary. The authoritative, reviewer-approved write-up is
-> [FINDINGS.md](FINDINGS.md) (consolidated synthesis, including the data-hygiene findings
-> omitted here), and each experiment's own `experiments/e*/FINDINGS.md` with code, plots,
-> diagnostics and reviewer verdicts. Reproduce any experiment with
-> `uv run python -m experiments.<id>.run`.
->
-> **No stats background?** [FINDINGS_FOR_DUMMIES.md](FINDINGS_FOR_DUMMIES.md) is a
-> plain-language walkthrough of the same five experiments (also Claude's interpretation) —
-> no logits, no credible intervals, just the intuition and the takeaways.
+    logit P(pass) = model + scaffold + token_given
+                    + benchmark × token_given + benchmark_item
+    (item effects nested within benchmark; token_given is the token budget a
+    run was granted — "none" when unlimited — with a per-benchmark interaction,
+    since a budget can bind differently per benchmark)
 
-All numbers are posterior means with 94% HDIs, and every experiment validated itself with
-synthetic-parameter-recovery fits before touching real data.
+Fitted as a hierarchical binomial GLM with [hibayes](https://github.com/UKGovernmentBEIS/hibayes)'
+config-driven pipeline, on pass/fail benchmark data from the
+[eva](https://github.com/AI-Safety-Institute/eva) warehouse. The whole
+analysis is [`modeling/config.yaml`](modeling/config.yaml); everything else is
+small custom pieces the config references.
 
-## Data
+## Layout
 
-The analyses run off local parquet extracts in `data/`, which are **gitignored**: they are
-~200MB, and although the benchmarks themselves are public, the eval *results* are
-AISI-internal — don't publish them. The fitted posteriors
-(`experiments/*/outputs/*.idata.nc`, ~800MB) are gitignored for the same size reason;
-small outputs (plots, CSVs, diagnostics JSONs) are tracked, as are `data/MANIFEST.json`
-and `data/scorer_inventory.json` (snapshot provenance).
-
-Regenerating the data is a single script, run from the eva client project on an AISI
-platform dev VM:
-
-```bash
-cd ~/dev/eva/client && uv run --with pyarrow python <this-repo>/shared/extract.py
+```
+modeling/
+├── config.yaml        the analysis: load → process → model → check → communicate
+├── extract.py         eva prod → data/modeling/*.parquet (run on a platform dev VM)
+├── processors.py      score coercion, scaffold derivation, item↔benchmark nesting
+├── custom_model.py    hierarchical binomial (main effects + nested item effects)
+├── discovery/         step 0: which evals are pass/fail, which variables have coverage
+└── synth/             parameter-recovery validation of the full pipeline
 ```
 
-Requirements: VPC connectivity to the eva Aurora cluster (any platform dev VM has it),
-AWS credentials, `AISI_PLATFORM_USER`/`AISI_PLATFORM_PROJECT` set, and membership of
-`team_ru` — eva enforces Postgres row-level security, so without that role the queries
-succeed but silently return only the rows your roles can see. `uv run eva-check` (in
-`eva/client`) verifies the whole setup first.
+## Run it
 
-The script pulls sample-level rows for cybench / gdm_intercode_ctf / swe_bench and
-eval-level rows for all four public tasks (filters: `team='team_ru'`,
-`status='success'`, no `replay/*`/mock/none models), chunked by quarter to stay under
-statement timeouts. It takes a few minutes, skips files that already exist, and writes
-`data/MANIFEST.json` with the extraction timestamp.
+Requirements: an AISI platform dev VM (VPC access to the eva Aurora cluster),
+AWS credentials, and team_ru membership. `cd ~/dev/eva/client && uv run
+eva-check` verifies the setup. eva enforces row-level security: without the
+right team role, queries silently return only the rows you can see.
 
-**Snapshot caveat:** every number in this repo is pinned to the **2026-07-16** extraction.
-The warehouse moves (new runs, re-ingestions), so a fresh extract is a new snapshot and
-regenerated numbers can differ. After re-extracting, rebuild any experiment's outputs and
-posteriors with `uv run python -m experiments.<id>.run`.
+```bash
+# 1. discover + extract (the eva-facing step): classifies every task's outcome,
+#    reports covariate coverage, then extracts the tasks that are pass/fail AND
+#    have a score column configured in config.yaml
+uv run python -m modeling.extract
 
-## E1 — cybench: epochs vs samples, and what honest uncertainty changes
+# 2. fit + check + plot, all from the config
+uv run hibayes-full --config modeling/config.yaml --out modeling/.output --no-tui
 
-**The experiment.** Cleaned cybench down to a comparable core: 19,677 attempts, 40
-hard-variant challenges × 10 models. Three binomial models on aggregated counts: per-model
-hierarchical challenge effects (to get each model's difficulty spectrum), a crossed
-challenge×run model on claude-3-7's 54 runs — it has a 100-epoch run, which is what makes
-the epoch-reliability question answerable — and a joint model (ability + challenge + run
-effects) for cross-model ranking. The epochs-vs-samples answer comes from turning the
-estimated intraclass correlation into a design curve: posterior uncertainty about ability
-as a function of how a fixed attempt budget is split between challenges and epochs,
-cross-checked against 200k-rep Monte Carlo.
+# optional: eyeball the raw trials (one dot per trial, no aggregation) —
+# uses the trial-level snapshot the process stage saves before aggregating
+uv run python -m modeling.plot_raw
+```
 
-**Findings.**
+Discovery results land in `modeling/discovery/outputs/` (`evals_inventory.csv`,
+`variables_coverage.csv`, ...). If discovery surfaces a pass/fail task the
+config doesn't map yet, extract reports and skips it — add it to
+`coerce_pass_fail_score.score_column_by_benchmark` in the config and re-run.
+`--tasks <names>` skips discovery entirely; the discovery scripts also run
+standalone.
 
-- cybench is nearly all-or-nothing: challenge spread is 5–9 logits per model; 27–82% of
-  challenges sit below a 5% solve rate and only 2–11 per model are genuine coin-flips.
-- Repeated epochs on the same challenge are highly redundant: ICC ρ = 0.78 [0.72, 0.82],
-  i.e. design effect 8 at 10 epochs, 78 at 100. For a fixed budget, minimise epochs until
-  every challenge is covered — concentrating 400 attempts on 4 challenges instead of 40
-  costs 27× in standard error.
-- The warehouse contains genuinely uninformative designs: 848 attempts on 2 challenges
-  still leaves ability uncertain to ±27 accuracy points.
-- Run-to-run drift: σ_run ≈ 1.1 logits, which moves a benchmark score ±2.7pp between
-  identical runs of the same model.
-- Ranking with honest uncertainty: gpt-5 0.52 > o3 0.47 > opus-4 0.39 > … but
-  P(gpt-5 > o3) is only 0.71. Naive Wald intervals are ~2.5× too narrow, and o1's apparent
-  lead over claude-3-7 (barely-overlapping naive CIs) collapses to P = 0.57 once challenge
-  and run structure is modeled.
+Outputs land in `modeling/.output/`: convergence and predictive checks under
+`models/*/diagnostics/`, the forest plot and summary table under
+`communicate/`. Iterate by editing the config (priors, variables, fit
+settings) and re-running; the staged CLIs (`hibayes-load` / `hibayes-process`
+/ `hibayes-model` / `hibayes-comm`) avoid re-loading data while you iterate on
+the model.
 
-## E2 — intercode-ctf: where does the variance actually come from?
+## What "scaffold" means here
 
-**The experiment.** A cross-classified random-effects model —
-logit P(solve) = model + challenge + model×challenge + run — fitted on the one fully
-homogeneous config in the data (4 models, 12 runs, 79 challenges × 10 epochs), plus a
-sensitivity fit including scaffold variants and a separate fit on the frontier fan-out
-campaign (where day-of-launch plays the run role). The point of the decomposition is to
-attribute outcome variance to its sources on a common scale. Included a model-free
-cross-check: between-run dispersion of per-item counts against an exact binomial null, so
-the drift claim doesn't rest on the prior.
+eva has no scaffold column. We derive one:
+`solver | canonical(task_args − data-selection keys) | canonical(solver_args)`
+(see `derive_scaffold` in [`modeling/processors.py`](modeling/processors.py)).
+Keys that select *items* rather than configure the agent (e.g. cybench
+variants) are excluded via config and belong to item identity instead, as are
+token/message budgets — those are modeled separately as `token_given`, so
+leaving them in the scaffold label would make the two collinear. On real
+data, incidental knobs (limits, seeds, tool lists) can fragment the scaffold
+factor -- watch the logged cardinality and switch to the `scaffold_keys`
+allowlist once discovery shows which keys matter. Reasoning configuration
+(`model_generate_config`) is surfaced by discovery but not yet part of the
+scaffold or the model. If the scaffold definition changes, only `config.yaml`
+changes.
 
-**Findings.**
+## Validation
 
-- Challenge identity dominates everything: 67% [63, 72] of variance. Epoch residual 24%,
-  model×challenge 4%, run 3%, model ~1% (these four models are similar-strength — that
-  last share isn't a general claim).
-- Run drift is provider-dependent: Azure-served Mistral setups drift at σ_run ≈ 0.9 logits
-  (8–17pp swings in run means) while gemma serving is stable at ≈ 0.08. The model-free
-  dispersion check confirms it (ratios ~3, p < 5e-4).
-- Deliberate scaffold changes (message limits, prompt variants) move scores about as much
-  as an unexplained relaunch does — "we changed nothing" and "we changed the prompt" are
-  similar-sized perturbations.
-- Even one week is enough to drift: the September frontier campaign shows σ_day = 0.35,
-  with gpt-5 gaining +12.2pp [7.7, 16.8] on a fixed 14-challenge set between Sep 17 and
-  Sep 20.
-- Consequence for effective sample size: a stable 790-sample run is worth N_eff ≈ 1,274
-  (fixed-item stratification actually helps), a drifting one ≈ 26–28 — a ~50× range — and
-  drift puts a ceiling (~22) on what any number of epochs can buy.
+The full pipeline — real config, synthetic data — is exercised by:
 
-## E3 — release-over-release deltas at matched config
+```bash
+uv run python -m modeling.synth.run_synth
+```
 
-**The experiment.** Rather than compare raw accuracies, build matched-config classes —
-same task_args, same solver, same challenge set, runs days apart — so the scaffold
-confound is removed within each pair, then fit binomial models with fixed model effects
-and (hierarchical) item effects; a beta-binomial variant handles within-run epoch
-correlation where a pair has only one run per model. A pooled two-benchmark model asks
-whether a delta generalises. Pairs with zero shared configs are declared non-analysable
-rather than forced.
+This generates eva-shaped data with known parameters — including a planted
+benchmark × token_given interaction — runs `hibayes-full` on it, and checks
+the posteriors recover the truth (gate: ≥85% of the 28 generating parameters
+inside their 94% HDI and item-effect correlation ≥ 0.9; the pinned seed
+recovers 25/28 — all misses by ≤0.03 — at correlation 0.99). Run it after any
+change to the processors, model, or config. Note the synthetic design is fully
+crossed and balanced -- it validates the pipeline and the model's
+self-consistency, not the confounding that unbalanced real data can introduce
+(see below). `uv run pytest` covers the score-coercion and scaffold-label
+decision tables.
 
-**Findings.**
+## Data notes
 
-- o1 → o3 (cybench hard, matched): +2.86 logits [+2.23, +3.46]; the beta-binomial
-  robustness check gives +2.66 [+1.74, +3.59]. P(δ > 0.5 logits) = 1.00 — a large,
-  unambiguous jump (+19pp accuracy).
-- sonnet-4 → opus-4-1: real but small — +0.27 logits on cybench-easy, +0.44 on intercode,
-  both P(δ>0) ≥ 0.99, both confidently *below* the 0.5-logit "meaningful" threshold.
-- Two benchmarks can't settle generalisation: the pooled delta is +0.48 [−0.16, +1.09] —
-  each benchmark's delta is precise, but "does it transfer to a new benchmark?" stays
-  genuinely open with N=2.
-- The naive o1→o3 read (+27.1pp) errs in both directions at once: it overstates the
-  matched effect (~+19pp) because o3 ran an easier mix, while understating the
-  within-challenge capability shift 2.4× because o1's bespoke scaffold masks it.
-- gpt-4o → gpt-5 is not honestly estimable from this warehouse: zero shared configs; 63%
-  of the naive intercode delta is item composition, and the remainder still confounds
-  scaffold with model.
-- Perspective: the same gpt-5 scores +30pp higher on the easy cybench variant than the
-  hard one — config choice rivals a major release jump.
+- `data/` is gitignored: eval results are AISI-internal (the benchmarks are
+  public, the results are not) and extracts are ~100s of MB. Regenerate with
+  `modeling/extract.py`; `data/modeling/MANIFEST.json` records the snapshot.
+- Every fitted number is pinned to its extraction snapshot — the warehouse
+  moves, so re-extracting can shift results.
+- The five earlier bespoke analyses (epoch design curves, variance
+  decomposition, release deltas, growth curves, portfolio health) live in git
+  history up to commit `1362644` — including their `FINDINGS.md` — and
+  informed this model's priors and its run-effect caveats.
 
-## E4 — capability growth over time
+## Results — first real fit (2026-07-21 snapshot, `unified_v1`)
 
-**The experiment.** Eval-level data collapsed to 33 model×task cells, with each model
-dated by *release date* (embedded snapshot dates plus web-verified ones), one pooled cell
-per model so that re-running a model a thousand times never counts as extra trend
-evidence. Per task: a measurement-error logit trend (slope in logits/year, with a
-model-level residual). The interesting methodological part: the first-round "frontier is
-accelerating" result was rejected by the reviewer as selection bias — a running-best
-record path rises by construction under *any* truth — and was replaced by selection-aware
-tests: an exact record-count null (P(model i sets a record) = 1/i under exchangeability),
-flat-null slope calibration, and a posterior-predictive curvature check.
+Fit on 166,511 trials across 3 benchmarks (cybench, gdm_intercode_ctf,
+swe_bench), 57 models, 160 derived scaffolds, 10 token-budget levels, 274
+items. Sampler quality was excellent (r̂ ≈ 1.00 everywhere, min ESS ≈ 3,700,
+zero divergences), so the numbers below are what the model believes — the
+caveats are about *identification*, not convergence.
 
-**Findings.**
+**Scaffold matters at least as much as model.** Scaffold effects span
+−5.5 to +5.2 logits (63 of 160 exclude zero), wider than the full 57-model
+spread of −2.5 (a uk-dsit gpt-4o fine-tune) to +4.2 (kimi-k3). Read the
+ranking direction, not individual values: 139/160 scaffolds appear with only
+one model, so many "scaffold" effects partially absorb model identity (and
+vice versa — kimi-k3's +4.2 rides on thin crossing).
 
-- Cybench capability velocity: +2.94 logits/yr [+1.22, +4.60], P = 0.997 — trend accuracy
-  went 0.11 → 0.66 in the year to Aug 2025. The selection-free record-count test agrees
-  (6–7 record-setters among 12 models vs 3.1 expected; exact P = 0.034/0.006).
-- Intercode grows ~3× slower (+0.92 [+0.00, +1.93]); hard-cyber outpaces easy-cyber with
-  P = 0.98.
-- boolq-preference is flat (−0.30 [−2.25, +1.91]) with a huge model-idiosyncratic spread —
-  it behaves like a framing-susceptibility measure, not a monotone capability;
-  gpt-4o-2024-08-06 is still unbeaten on it through gpt-5.
-- swe_bench velocity is unidentifiable here (3 models over 0.28 years — the synthetic
-  check shows even a large true slope couldn't be recovered from that design).
-- No saturation: the apparent frontier deceleration is exactly what a *purely linear*
-  trend produces mechanically after record selection (PPC p = 0.43/0.72), so the round-1
-  deceleration hint was withdrawn; best observed accuracies are well below ceiling.
-- Record-path slopes themselves carry ~no trend information (observed values sit mid-null,
-  p ≈ 0.5) — a useful negative result for anyone tempted to fit lines through "best model
-  so far" plots.
+**The confound is visible in plain sight:** `openai/o1` (early bespoke-harness
+runs) lands at −1.75 while `o1-2024-12-17` — the same model under later
+configs — lands at +1.39. Three logits between two labels for one model is
+the model↔scaffold entanglement this analysis exists to separate; it needs
+model-name normalisation plus denser crossing to resolve.
 
-## E5 — portfolio statistical-health audit
+**Item difficulty dwarfs everything.** Within-benchmark item spread is
+σ ≈ 3.2 (intercode), 3.7 (swe_bench), 5.6 (cybench) — several times the
+model spread. Which items a run faces matters more than which model runs it.
+Benchmark means: cybench −2.9 logits (much harder than intercode/swe_bench
+at +1.5).
 
-**The experiment.** The same four questions asked uniformly of every benchmark:
-discrimination (posterior spread of model abilities ÷ a single model's posterior
-uncertainty), saturation (P(best ability > 0.90)), overdispersion (intra-item correlation,
-i.e. how far from iid binomial), and run reproducibility (exact-config replicate groups,
-run-level σ vs binomial prediction). Crossed binomial models with fixed model effects; an
-eval-level normal model for boolq (which adds charity-framing condition effects); a
-beta-binomial sensitivity fit on cybench to check how much the binomial likelihood
-flatters discrimination.
+**Token budgets: no clean effect.** Only the 10M budget separates from zero
+(+1.1 [0.1, 2.1]); point estimates rise with budget, but "none" (no limit
+set) sits lowest at −1.0 — evidence that `token_given="none"` is a cohort of
+older/different runs, not an experimental "unlimited" arm. No
+benchmark × token interaction cell excludes zero.
 
-**Findings.**
+Iteration queue implied by these results, in order of value: (1) restrict
+scaffold to a `scaffold_keys` allowlist to collapse the 160 fragmented
+levels; (2) normalise model names (fine-tune checkpoints and provider
+prefixes currently count as separate models); (3) add a run-level effect for
+overdispersion; (4) drop or re-derive `token_given` unless a budget-varied
+cohort exists.
 
-- Discrimination: all four benchmarks separate models well beyond noise — ratios 7.6
-  (cybench; 3.7 under the more honest beta-binomial), 14.4 (intercode), 5.7 (swe_bench).
-- Saturation: none. Best abilities 0.62 / 0.68 / 0.44 on the agentic three; boolq's 0.89
-  is watch-listed but P(>0.90) = 0 everywhere.
-- Overdispersion is severe on all agentic benchmarks (ρ = 0.68 / 0.41 / 0.56), which is
-  the same phenomenon as E1's epoch redundancy seen portfolio-wide: 10-epoch design
-  effects of ~5–7.
-- Run reproducibility: cybench and intercode same-config runs swing 3.9× [2.8, 5.2] what
-  binomial noise predicts; boolq's run-to-run noise is 3.3× its own reported stderr;
-  swe_bench is binomial-consistent but from only 9 replicate runs.
-- boolq measures a model-dependent mixture: framing-condition sensitivity ranges from
-  SD ≈ 0.22 (claude-3-7) to 0.002 (gpt-4o) — two models with the same mean score can be
-  measuring different things.
-- Verdicts: cybench **noisy**, intercode **noisy**, swe_bench **underpowered**,
-  boolq-preference **noisy**. And the judge-effects question is formally confirmed
-  infeasible on the public slice — every scorer is rule-based — so that analysis needs the
-  internal `rubric_scorer/<judge>` long-form tasks, ideally with the same transcripts
-  scored by two judges.
+### Figures
 
----
+Snapshot-pinned copies in [`modeling/figures/`](modeling/figures/) (the full
+outputs in `modeling/.output/` are gitignored — the posterior alone is
+~250MB). To replicate: re-run the two commands under **Run it**, then
+`uv run python -m modeling.plot_raw`; the forest plots are written to
+`modeling/.output/communicate/` by the pipeline's communicate stage. A fresh
+extract is a new warehouse snapshot, so regenerated numbers can shift.
 
-If you're picking what leads a paper: E1's design curve + E5's portfolio-wide ρ (the same
-story at two zoom levels), E2's provider-drift decomposition, and E3's o1→o3
-matched-vs-naive contrast are the four figures to build it around.
+Raw trials, one dot per attempt, before any model:
+
+![raw trials](modeling/figures/raw_scores.png)
+
+Model effects (logit scale, sum-to-zero — 0 is the average model):
+
+![model effects](modeling/figures/forest_models.png)
+
+Scaffold effects — wider spread than the models, but most levels are
+single-model (see caveats above):
+
+![scaffold effects](modeling/figures/forest_scaffolds.png)
+
+Token budgets, benchmark means, and per-benchmark item spread:
+
+![token and benchmark effects](modeling/figures/forest_token_benchmark.png)
+
+Benchmark × token interaction (no cell excludes zero):
+
+![benchmark x token interaction](modeling/figures/forest_benchmark_x_token.png)
+
+## Known limitations (v1)
+
+- **No run effect.** Same-config reruns drift by ~1 logit on some
+  provider/benchmark pairs (see E2/E5 in the historical findings), so the
+  binomial likelihood is overdispersed and intervals are somewhat optimistic.
+  v2 should add a run-level random effect — a config + small model change.
+- **model × scaffold × benchmark overlap.** Additive effects are only
+  identified where levels are crossed; where a model or scaffold appears on
+  only some benchmarks, its effect is confounded with benchmark difficulty and
+  the posterior falls back on the prior. Check the crossing table
+  (`.output/processed_data.parquet`) before reading the forest plot causally;
+  historically some model pairs had zero shared configs.
+- **Three benchmarks** on the public team_ru slice. The discovery scripts are
+  the path to widening this once broader eva access is in scope.

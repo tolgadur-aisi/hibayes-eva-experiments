@@ -1,8 +1,0 @@
-{
-  "model": "simplified_group_binomial_exponentialsynth_challenge_only",
-  "max_r_hat": 1.0031,
-  "min_ess_bulk": 1581.9967,
-  "min_ess_tail": 2521.7574,
-  "n_divergences": 0,
-  "n_params": 82
-}

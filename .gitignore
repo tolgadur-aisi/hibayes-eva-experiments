@@ -3,9 +3,11 @@
 __pycache__/
 *.pyc
 
-# eva prod data extracts — large and AISI-internal; regenerate via shared/extract.py
-# (data/MANIFEST.json and data/scorer_inventory.json stay tracked as snapshot provenance)
-data/*.parquet
+# eva prod data extracts — large and AISI-internal; regenerate via modeling/extract.py.
+# Synthetic data (data/synth/) is also regenerable via modeling/synth/run_synth.py.
+data/
 
-# Fitted posteriors — large; regenerate via `uv run python -m experiments.<id>.run`
-experiments/*/outputs/*.idata.nc
+# hibayes pipeline outputs — large posteriors; regenerate via hibayes-full
+modeling/.output/
+modeling/synth/.output/
+modeling/synth/.config.yaml

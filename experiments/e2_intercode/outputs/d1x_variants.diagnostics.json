@@ -1,8 +1,0 @@
-{
-  "model": "crossed_var_variantd1x_variants",
-  "max_r_hat": 1.0265,
-  "min_ess_bulk": 174.8208,
-  "min_ess_tail": 1219.9159,
-  "n_divergences": 0,
-  "n_params": 520
-}

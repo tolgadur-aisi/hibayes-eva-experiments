@@ -1,8 +1,0 @@
-{
-  "model": "release_trend_logit_normaltrend_boolq_preference",
-  "max_r_hat": 1.0021,
-  "min_ess_bulk": 3331.3513,
-  "min_ess_tail": 3298.4108,
-  "n_divergences": 0,
-  "n_params": 3
-}

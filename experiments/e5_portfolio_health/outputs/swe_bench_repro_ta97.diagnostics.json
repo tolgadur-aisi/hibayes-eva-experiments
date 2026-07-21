@@ -1,9 +1,0 @@
-{
-  "model": "run_repro_binomial",
-  "tag": "swe_bench_repro_ta97",
-  "max_r_hat": 1.0028,
-  "min_ess_bulk": 2615.1767,
-  "min_ess_tail": 3159.1278,
-  "n_divergences": 0,
-  "n_params": 14
-}

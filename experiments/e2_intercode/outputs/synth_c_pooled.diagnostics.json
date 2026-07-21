@@ -1,8 +1,0 @@
-{
-  "model": "crossed_varsynth_c_pooled",
-  "max_r_hat": 1.0061,
-  "min_ess_bulk": 821.5516,
-  "min_ess_tail": 1507.9193,
-  "n_divergences": 0,
-  "n_params": 416
-}

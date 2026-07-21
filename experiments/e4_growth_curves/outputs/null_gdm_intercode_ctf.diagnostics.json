@@ -1,8 +1,0 @@
-{
-  "model": "release_trend_logit_normalnull_gdm_intercode_ctf",
-  "max_r_hat": 1.0025,
-  "min_ess_bulk": 2737.7037,
-  "min_ess_tail": 2215.9253,
-  "n_divergences": 0,
-  "n_params": 2
-}

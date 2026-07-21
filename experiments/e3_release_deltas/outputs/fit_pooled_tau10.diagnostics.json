@@ -1,8 +1,0 @@
-{
-  "model": "pooled_pair_binomialpooled_tau10",
-  "max_r_hat": 1.0022,
-  "min_ess_bulk": 1497.8591,
-  "min_ess_tail": 2469.0795,
-  "n_divergences": 0,
-  "n_params": 40
-}
