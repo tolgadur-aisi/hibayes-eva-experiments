@@ -149,6 +149,36 @@ prefixes currently count as separate models); (3) add a run-level effect for
 overdispersion; (4) drop or re-derive `token_given` unless a budget-varied
 cohort exists.
 
+### Figures
+
+Snapshot-pinned copies in [`modeling/figures/`](modeling/figures/) (the full
+outputs in `modeling/.output/` are gitignored — the posterior alone is
+~250MB). To replicate: re-run the two commands under **Run it**, then
+`uv run python -m modeling.plot_raw`; the forest plots are written to
+`modeling/.output/communicate/` by the pipeline's communicate stage. A fresh
+extract is a new warehouse snapshot, so regenerated numbers can shift.
+
+Raw trials, one dot per attempt, before any model:
+
+![raw trials](modeling/figures/raw_scores.png)
+
+Model effects (logit scale, sum-to-zero — 0 is the average model):
+
+![model effects](modeling/figures/forest_models.png)
+
+Scaffold effects — wider spread than the models, but most levels are
+single-model (see caveats above):
+
+![scaffold effects](modeling/figures/forest_scaffolds.png)
+
+Token budgets, benchmark means, and per-benchmark item spread:
+
+![token and benchmark effects](modeling/figures/forest_token_benchmark.png)
+
+Benchmark × token interaction (no cell excludes zero):
+
+![benchmark x token interaction](modeling/figures/forest_benchmark_x_token.png)
+
 ## Known limitations (v1)
 
 - **No run effect.** Same-config reruns drift by ~1 logit on some
