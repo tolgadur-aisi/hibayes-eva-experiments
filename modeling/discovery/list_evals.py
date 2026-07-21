@@ -15,8 +15,10 @@ Outputs (committed so the selection is reviewable):
     modeling/discovery/outputs/pass_fail_tasks.txt
 """
 
+import argparse
 import json
 import multiprocessing
+import time
 from collections import Counter
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
@@ -68,8 +70,20 @@ WHERE e.task_name = %(task)s AND {BASE_FILTERS}
 LIMIT %(limit)s
 """
 
-PASS_FAIL_VALUES = {"C", "I", "N", 0, 1, 0.0, 1.0, "0", "1", True, False}
+PASS_FAIL_VALUES = {"C", "I", "N", 0, 1, 0.0, 1.0, "0", "1", "0.0", "1.0", True, False}
 PARTIAL_VALUES = {"P", 0.5, "0.5"}
+
+# Ordering used to pick the most decision-relevant score column when a task
+# has several (value, answer, explanation, ... all expand to score_* columns).
+CLASS_PRIORITY = [
+    "pass_fail",
+    "pass_fail_with_partial",
+    "continuous_0_1",
+    "ordinal",
+    "continuous",
+    "other",
+    "no_scores",
+]
 
 
 def classify_values(values: Counter) -> str:
@@ -92,32 +106,100 @@ def classify_values(values: Counter) -> str:
     return "continuous" if len(set(numeric)) > 3 else "ordinal"
 
 
-def probe_task_scores(task: str, limit: int = 500) -> tuple[str, dict]:
-    """Sample raw score values for one task and classify the outcome type."""
-    df = samples(
-        SCORE_PROBE_SQL,
-        params={"task": task, "limit": limit},
-        statement_timeout_ms=120_000,
+def column_values(df: pd.DataFrame, col: str) -> Counter:
+    """Hashable scalar values of one column (dict/list cells are skipped)."""
+    return Counter(
+        v for v in df[col].dropna().tolist() if not isinstance(v, (dict, list))
     )
-    values: Counter = Counter()
+
+
+def classify_score_columns(
+    df: pd.DataFrame, headline_scorers: str | None
+) -> tuple[str | None, str, dict]:
+    """Pick the score column that carries the task's outcome and classify it.
+
+    eva stores the WHOLE Inspect score object per scorer, so samples() expands
+    it into several score_* columns: the scorer value, but also answer /
+    explanation / metadata (flag strings, free text). Pooling them all made
+    every real benchmark classify as "other". Instead: prefer the headline
+    scorer's own column (the one the modeling config maps), falling back to
+    whichever score_* column classifies as most decision-like.
+
+    Returns (column, outcome, top_values).
+    """
     score_cols = [c for c in df.columns if c.startswith("score_")]
+    if not score_cols:
+        return None, "no_scores", {}
+
+    classified = {}
     for col in score_cols:
-        values.update(v for v in df[col].dropna().tolist())
-    outcome = classify_values(values)
-    top = dict(values.most_common(8))
-    return outcome, {str(k): v for k, v in top.items()}
+        vals = column_values(df, col)
+        classified[col] = (classify_values(vals), vals)
+
+    # headline scorer's exact column wins if present (e.g. score_includes);
+    # among its dotted expansions (score_x.value, ...) take the best-ranked.
+    for scorer in (headline_scorers or "").split(", "):
+        if not scorer:
+            continue
+        candidates = [
+            c for c in score_cols
+            if c == f"score_{scorer}" or c.startswith(f"score_{scorer}.")
+        ]
+        if f"score_{scorer}" in candidates:
+            candidates = [f"score_{scorer}"]
+        if candidates:
+            col = min(candidates, key=lambda c: CLASS_PRIORITY.index(classified[c][0]))
+            outcome, vals = classified[col]
+            return col, outcome, dict(vals.most_common(8))
+
+    col = min(classified, key=lambda c: CLASS_PRIORITY.index(classified[c][0]))
+    outcome, vals = classified[col]
+    return col, outcome, dict(vals.most_common(8))
 
 
-def main() -> None:
+def probe_task_scores(
+    task: str, headline_scorers: str | None = None, limit: int = 500
+) -> tuple[str | None, str, dict]:
+    """Sample raw score values for one task and classify the outcome type.
+
+    Retries on AWS throttling: spawned workers each set up their own eva
+    config/credentials, and a burst of 8 can trip SSM rate limits.
+    """
+    for attempt in range(3):
+        try:
+            df = samples(
+                SCORE_PROBE_SQL,
+                params={"task": task, "limit": limit},
+                statement_timeout_ms=120_000,
+            )
+            break
+        except Exception as e:
+            retryable = "Throttling" in str(e) or "Rate exceeded" in str(e)
+            if not retryable or attempt == 2:
+                raise
+            time.sleep(2 * (attempt + 1))
+    col, outcome, top = classify_score_columns(df, headline_scorers)
+    return col, outcome, {str(k): v for k, v in top.items()}
+
+
+def main(min_evals: int = 5) -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
     tasks_df = query(TASKS_SQL, statement_timeout_ms=240_000)
     print(f"{len(tasks_df)} {TEAM} tasks")
 
-    tasks = list(tasks_df["task_name"])
-    probed: dict[str, tuple[str, dict]] = {}
+    # every task is listed in the inventory, but probing one-off dev runs is
+    # wasted work -- only tasks with enough evals get a score probe
+    headline_by_task = dict(zip(tasks_df["task_name"], tasks_df["headline_scorers"]))
+    eligible = list(tasks_df[tasks_df["n_evals"] >= min_evals]["task_name"])
+    print(f"probing {len(eligible)} tasks with >= {min_evals} evals")
+
+    probed: dict[str, tuple[str | None, str, dict]] = {}
     with ProcessPoolExecutor(max_workers=PROBE_WORKERS, mp_context=SPAWN) as pool:
-        futures = {pool.submit(probe_task_scores, task): task for task in tasks}
+        futures = {
+            pool.submit(probe_task_scores, task, headline_by_task.get(task)): task
+            for task in eligible
+        }
         progress = tqdm(
             as_completed(futures), total=len(futures), desc="probing scores", unit="task"
         )
@@ -126,16 +208,20 @@ def main() -> None:
             try:
                 probed[task] = future.result()
             except Exception as e:  # one broken task shouldn't kill discovery
-                probed[task] = (f"probe_failed: {e}", {})
-            progress.write(f"  {task}: {probed[task][0]}")
+                probed[task] = (None, f"probe_failed: {e}", {})
+            progress.write(f"  {task}: {probed[task][1]} ({probed[task][0]})")
 
-    outcomes, value_samples = [], []
-    for task in tasks:
-        outcome, top = probed[task]
+    columns, outcomes, value_samples = [], [], []
+    for task in tasks_df["task_name"]:
+        col, outcome, top = probed.get(
+            task, (None, f"not_probed(<{min_evals} evals)", {})
+        )
+        columns.append(col or "")
         outcomes.append(outcome)
         value_samples.append(json.dumps(top))
 
     tasks_df["outcome_type"] = outcomes
+    tasks_df["score_column"] = columns
     tasks_df["score_values_sampled"] = value_samples
     tasks_df.to_csv(OUT_DIR / "evals_inventory.csv", index=False)
 
@@ -150,4 +236,12 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--min-evals",
+        type=int,
+        default=5,
+        help="Only probe score values for tasks with at least this many evals",
+    )
+    args = parser.parse_args()
+    main(min_evals=args.min_evals)
