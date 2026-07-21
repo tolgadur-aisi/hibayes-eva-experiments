@@ -1,8 +1,10 @@
 """Step 1 of the modeling recipe: list all evals in eva and classify their outcome.
 
-For every task visible to your eva roles, this reports how many runs exist and
-whether the scores are pass/fail (binary C/I/N or 0/1), partial-credit,
-continuous, or something else. Only pass/fail tasks feed the binomial model.
+For every team_ru task, this reports how many runs exist and whether the
+scores are pass/fail (binary C/I/N or 0/1), partial-credit, continuous, or
+something else. Only pass/fail tasks feed the binomial model. Scope is pinned
+to TEAM below -- your eva roles may see other teams' data (cast, chembio, ...)
+and an unpinned scan would probe all of it, slowly.
 
 Run from this repo on a platform dev VM with eva access:
 
@@ -22,8 +24,10 @@ from eva import query, samples
 
 OUT_DIR = Path(__file__).resolve().parent / "outputs"
 
-BASE_FILTERS = """
-    e.status = 'success'
+TEAM = "team_ru"
+
+BASE_FILTERS = f"""
+    e.team = '{TEAM}' AND e.status = 'success'
     AND e.model NOT LIKE 'replay/%%'
     AND e.model NOT IN ('none/none', 'mockllm/model')
 """
@@ -97,7 +101,7 @@ def main() -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
     tasks_df = query(TASKS_SQL, statement_timeout_ms=240_000)
-    print(f"{len(tasks_df)} tasks visible to your eva roles")
+    print(f"{len(tasks_df)} {TEAM} tasks")
 
     outcomes, value_samples = [], []
     for task in tasks_df["task_name"]:

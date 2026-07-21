@@ -25,8 +25,10 @@ from eva import query
 
 OUT_DIR = Path(__file__).resolve().parent / "outputs"
 
-BASE_FILTERS = """
-    e.status = 'success'
+TEAM = "team_ru"  # keep in sync with list_evals.py and extract.py
+
+BASE_FILTERS = f"""
+    e.team = '{TEAM}' AND e.status = 'success'
     AND e.model NOT LIKE 'replay/%%'
     AND e.model NOT IN ('none/none', 'mockllm/model')
 """
