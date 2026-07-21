@@ -24,6 +24,7 @@ needed when the config changes.
 
 import argparse
 import json
+import multiprocessing
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import date
@@ -91,8 +92,12 @@ def quarters(start: date, end: date) -> list[tuple[str, str]]:
 
 
 # eva caches ONE psycopg connection per process, so parallel pulls need
-# separate processes, not threads. Each worker holds its own Aurora connection.
+# separate processes, not threads -- and the pool must use SPAWN: fork would
+# copy the parent's cached connection into every worker and they would all
+# share one socket (serialized queries at best, protocol errors at worst).
+# Each spawned worker opens its own Aurora connection.
 PULL_WORKERS = 8
+SPAWN = multiprocessing.get_context("spawn")
 
 
 def pull_quarter(task: str, lo: str, hi: str) -> pd.DataFrame:
@@ -117,7 +122,7 @@ def extract_samples(tasks: list[str]) -> None:
 
     window = quarters(date(2024, 10, 1), date(2026, 8, 1))
     chunks: dict[str, list[pd.DataFrame]] = defaultdict(list)
-    with ProcessPoolExecutor(max_workers=PULL_WORKERS) as pool:
+    with ProcessPoolExecutor(max_workers=PULL_WORKERS, mp_context=SPAWN) as pool:
         futures = {
             pool.submit(pull_quarter, task, lo, hi): (task, lo, hi)
             for task in todo

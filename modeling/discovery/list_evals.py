@@ -16,6 +16,7 @@ Outputs (committed so the selection is reviewable):
 """
 
 import json
+import multiprocessing
 from collections import Counter
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
@@ -27,9 +28,12 @@ from tqdm import tqdm
 OUT_DIR = Path(__file__).resolve().parent / "outputs"
 
 # eva caches ONE psycopg connection per process, so parallel queries need
-# separate processes, not threads. Keep the pool modest -- each worker holds
-# its own Aurora connection.
+# separate processes, not threads -- and the pool must use SPAWN: fork would
+# copy the parent's cached connection into every worker and they would all
+# share one socket (serialized queries at best, protocol errors at worst).
+# Keep the pool modest -- each spawned worker opens its own Aurora connection.
 PROBE_WORKERS = 8
+SPAWN = multiprocessing.get_context("spawn")
 
 TEAM = "team_ru"
 
@@ -112,7 +116,7 @@ def main() -> None:
 
     tasks = list(tasks_df["task_name"])
     probed: dict[str, tuple[str, dict]] = {}
-    with ProcessPoolExecutor(max_workers=PROBE_WORKERS) as pool:
+    with ProcessPoolExecutor(max_workers=PROBE_WORKERS, mp_context=SPAWN) as pool:
         futures = {pool.submit(probe_task_scores, task): task for task in tasks}
         progress = tqdm(
             as_completed(futures), total=len(futures), desc="probing scores", unit="task"
